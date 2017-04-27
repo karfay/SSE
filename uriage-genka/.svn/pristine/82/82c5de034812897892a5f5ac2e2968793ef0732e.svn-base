@@ -1,0 +1,18 @@
+package ug;
+
+import javax.annotation.Generated;
+
+/**
+ * SQLファイルの定数クラスです。
+ *
+ */
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.SqlFileConstantsModelFactoryImpl"}, date = "2017/03/10 14:16:49")
+public final class SqlFiles {
+	public static final String PREFIX = "/META-INF/sql/";
+
+	public static final String selectUseDataDto = PREFIX + "selectUserDataDto.sql";
+
+	public static final String searchUkList = PREFIX + "ukList/conditional_search.sql";
+
+	public static final String ukSelectNendoList = PREFIX + "ukList/select_nendo_list.sql";
+}

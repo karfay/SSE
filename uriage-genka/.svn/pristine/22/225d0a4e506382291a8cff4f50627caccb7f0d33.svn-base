@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+
+<project name="management" default="main" basedir=".">
+
+	<property name="javadoc" value="javadoc" />
+	<property name="java-file-encoding" value="UTF-8" />
+
+	<property name="app-root" value="src/main/webapp" />
+	<property name="resources" value="src/main/resources" />
+
+	<property name="ug-src" value="src/main/java" />
+	<property name="ug-webinf" value="${app-root}/WEB-INF" />
+	<property name="ug-classes" value="${ug-webinf}/classes" />
+	<property name="lib.dir" value="${ug-webinf}/lib"/>
+
+	<property name="ug-base-classes" value="../ug-base/src/main/ug/WEB-INF/classes" />
+	<property name="ug-base-src" value="../ug-base/src/main/java" />
+	<property name="ug-base-src-destdir" value="../ug-base/src/main/java" />
+
+	<property name="ttype" value="org" />
+
+	<path id="classpath">
+		<pathelement location="${ug-classes}" />
+		<fileset dir="lib">
+			<exclude name="lib/sources/**" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<exclude name="${lib.dir}/sources/**" />
+		</fileset>
+	</path>
+
+	<target name="main" depends="make_ug.war">
+	</target>
+
+	<target name="make_ug.war">
+
+		<tstamp><format property="NOW" pattern="yyyyMMddHHmmss"/></tstamp>
+
+
+		<echo>overwrite application.properties</echo>
+		<copy
+			file="${resources}/application_ja.properties"
+			tofile="build/${ttype}/application_ja.properties"
+			overwrite="true"
+		/>
+
+		<echo>overwrite jdbc.dicon</echo>
+		<copy
+			file="${resources}/jdbc.dicon"
+			tofile="build/${ttype}/jdbc.dicon"
+			overwrite="true"
+		/>
+
+		<echo>overwrite log4j.properties</echo>
+		<copy
+			file="${resources}/log4j.properties"
+			tofile="build/${ttype}/log4j.properties"
+			overwrite="true"
+		/>
+
+		<echo>overwrite env.txt</echo>
+		<copy
+			file="${resources}/env.txt"
+			tofile="build/${ttype}/env.txt"
+			overwrite="true"
+		/>
+
+		<echo>build war</echo>
+		<war destfile="build/${ttype}/${ttype}.ug.war" webxml="${ug-webinf}/web.xml">
+			<fileset dir="${app-root}">
+				<exclude name="${lib.dir}/sources/**"/>
+			</fileset>
+			<classes dir="${ug-classes}"></classes>
+
+		</war>
+
+		<javac srcdir="${ug-src}"
+			destdir="${ug-classes}"
+			encoding="${java-file-encoding}"
+			fork="true"
+			debug="on"
+			classpathref="classpath">
+		</javac>
+	</target>
+
+	<!-- make javadoc -->
+	<target name="javadoc">
+		<delete dir="${javadoc}" />
+		<mkdir dir="${javadoc}" />
+
+		<javadoc packagenames="*" destdir="${javadoc}" encoding="UTF-8" charset="UTF-8" access="public">
+			<sourcepath>
+				<pathelement path="${ug-src}"/>
+				<pathelement path="${ug-base-src}"/>
+			</sourcepath>
+			<classpath>
+				<fileset dir="${lib.dir}">
+					<include name="*.jar" />
+					<exclude name="log4j*"/>
+				</fileset>
+				<pathelement path="lib/servlet-api.jar"/>
+
+			</classpath>
+		</javadoc>
+
+	</target>
+</project>
+

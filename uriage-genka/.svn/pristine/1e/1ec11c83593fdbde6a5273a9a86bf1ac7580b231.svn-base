@@ -1,0 +1,36 @@
+package ug.service;
+
+import java.util.List;
+import javax.annotation.Generated;
+import ug.entity.EmpMonthlyKousu;
+
+import static org.seasar.extension.jdbc.operation.Operations.*;
+import static ug.entity.EmpMonthlyKousuNames.*;
+
+/**
+ * {@link EmpMonthlyKousu}のサービスクラスです。
+ * 
+ */
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.ServiceModelFactoryImpl"}, date = "2017/03/07 15:54:16")
+public class EmpMonthlyKousuService extends AbstractService<EmpMonthlyKousu> {
+
+    /**
+     * 識別子でエンティティを検索します。
+     * 
+     * @param emkId
+     *            識別子
+     * @return エンティティ
+     */
+    public EmpMonthlyKousu findById(Integer emkId) {
+        return select().id(emkId).getSingleResult();
+    }
+
+    /**
+     * 識別子の昇順ですべてのエンティティを検索します。
+     * 
+     * @return エンティティのリスト
+     */
+    public List<EmpMonthlyKousu> findAllOrderById() {
+        return select().orderBy(asc(emkId())).getResultList();
+    }
+}

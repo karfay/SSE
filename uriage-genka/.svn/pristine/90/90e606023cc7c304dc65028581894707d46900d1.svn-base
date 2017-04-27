@@ -1,0 +1,98 @@
+package ug.entity;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.List;
+import javax.annotation.Generated;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
+/**
+ * GenkaKanriエンティティクラス
+ * 
+ */
+@Entity
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.EntityModelFactoryImpl"}, date = "2017/03/07 15:54:08")
+public class GenkaKanri implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /** gkIdプロパティ */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(precision = 10, nullable = false, unique = true)
+    public Integer gkId;
+
+    /** themeGroupプロパティ */
+    @Column(length = 10, nullable = false, unique = true)
+    public String themeGroup;
+
+    /** themeNameプロパティ */
+    @Column(length = 100, nullable = false, unique = false)
+    public String themeName;
+
+    /** kokyakuInitialプロパティ */
+    @Column(length = 1, nullable = false, unique = false)
+    public String kokyakuInitial;
+
+    /** pjAdminプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String pjAdmin;
+
+    /** pjLeaderプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String pjLeader;
+
+    /** createrプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String creater;
+
+    /** tyakusyuMonthプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String tyakusyuMonth;
+
+    /** noukiプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String nouki;
+
+    /** lastUpdaterプロパティ */
+    @Column(length = 10, nullable = false, unique = false)
+    public String lastUpdater;
+
+    /** lastUpdateTimeプロパティ */
+    @Column(nullable = false, unique = false)
+    public Timestamp lastUpdateTime;
+
+    /** empMaster関連プロパティ */
+    @ManyToOne
+    @JoinColumn(name = "creater", referencedColumnName = "emp_no")
+    public EmpMaster empMaster;
+
+    /** empMaster2関連プロパティ */
+    @ManyToOne
+    @JoinColumn(name = "pj_admin", referencedColumnName = "emp_no")
+    public EmpMaster empMaster2;
+
+    /** empMaster3関連プロパティ */
+    @ManyToOne
+    @JoinColumn(name = "pj_leader", referencedColumnName = "emp_no")
+    public EmpMaster empMaster3;
+
+    /** gkMemoTableList関連プロパティ */
+    @OneToMany(mappedBy = "genkaKanri")
+    public List<GkMemoTable> gkMemoTableList;
+
+    /** kaihatsutaiseiList関連プロパティ */
+    @OneToMany(mappedBy = "genkaKanri")
+    public List<Kaihatsutaisei> kaihatsutaiseiList;
+
+    /** monthlyGenkaList関連プロパティ */
+    @OneToMany(mappedBy = "genkaKanri")
+    public List<MonthlyGenka> monthlyGenkaList;
+}

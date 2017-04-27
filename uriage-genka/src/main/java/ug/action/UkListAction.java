@@ -1,0 +1,842 @@
+package ug.action;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.seasar.extension.jdbc.JdbcManager;
+import org.seasar.framework.beans.util.Beans;
+import org.seasar.struts.annotation.ActionForm;
+import org.seasar.struts.annotation.Execute;
+
+import ug.SqlFiles;
+import ug.condition.UkListCondition;
+import ug.constant.ukListConstant;
+import ug.dto.UkListDto;
+import ug.dto.UserDataDto;
+import ug.entity.Anken;
+import ug.entity.AnkenNames;
+import ug.entity.AnkenRireki;
+import ug.entity.AnkenRirekiNames;
+import ug.entity.EmpMaster;
+import ug.entity.ThemeMaster;
+import ug.entity.UgCodeMaster;
+import ug.entity.UriageKeikaku;
+import ug.form.UkListForm;
+import ug.service.AnkenRirekiService;
+import ug.service.AnkenService;
+import ug.service.EmpMasterService;
+import ug.service.ThemeMasterService;
+import ug.service.UgCodeMasterService;
+import ug.service.UriageKeikakuService;
+import ug.util.StringUtil;
+
+public class UkListAction {
+
+	@ActionForm
+	@Resource
+	protected UkListForm ukListForm;
+
+	//protectedだとjspから見れないのでpublic
+	//jspからログイン情報が見えるけど、書き換えられるわけではないので良しとする。
+	@Resource
+	public UserDataDto userDataDto;
+
+	@Resource
+	protected JdbcManager jdbcManager;
+
+	@Resource
+	protected EmpMasterService empMasterService;
+
+	@Resource
+	protected UgCodeMasterService ugCodeMasterService;
+
+	@Resource
+	protected AnkenService ankenService;
+
+	@Resource
+	protected AnkenRirekiService ankenRirekiService;
+
+	@Resource
+	protected UriageKeikakuService uriageKeikakuService;
+
+	@Resource
+	protected ThemeMasterService themeMasterService;
+
+	/**売上計画管理表*/
+	public List<UkListDto> ukList;
+
+	/**年度リスト*/
+	public List<String> nendoList;
+
+	/**営業担当リスト*/
+	public List<EmpMaster> eigyoList;
+
+	/**所属長リスト（開発グループ名）*/
+	public List<EmpMaster> kaihatsuGroupList;
+
+	//TODO なぜか確度リストだけリクエスト時にcheckedされない
+	/**確度リスト*/
+	public List<UgCodeMaster> kakudoList;
+
+	/**発注タイプリスト*/
+	public List<UgCodeMaster> hattyuTypeList;
+
+	/**状態コードリスト*/
+	public List<UgCodeMaster> conditionCodeList;
+
+	/**小計
+	 * strutsの仕様上、キー名の頭文字を数字にするとjspで値が取得できない。
+	 * 設計段階では確度コードをキーにしていたが、出来ないためコード名称をキーとする。
+	 * */
+	public Map<String , UkListDto> subtotal = new HashMap<String, UkListDto>();
+
+	/**小計のキー名を呼び出す用*/
+	public List<String> subtotalKeys = new ArrayList<String>();
+
+
+	/**
+	 * 初期表示
+	 * @return
+	 */
+	@Execute(validator=false)
+	public String index(){
+
+		//ukListCondition.nendo = ug.util.StringUtil.getCurrentNendo();
+		ukListForm.initialize();
+		UkListCondition ukListCondition = new UkListCondition();
+		refillCondition(ukListForm, ukListCondition);
+		ukList = jdbcManager.selectBySqlFile(UkListDto.class, SqlFiles.UK_LIST_CONDITIONAL_SEARCH, ukListCondition).getResultList();
+
+		reload(ukList);
+
+		return "list.jsp";
+	}
+
+	/**
+	 * 「検索」ボタン押下時
+	 * @return
+	 */
+	@Execute(validator=false)
+	public String search(){
+
+		UkListCondition ukListCondition = new UkListCondition();
+		refillCondition(ukListForm, ukListCondition);
+
+		ukList = jdbcManager.selectBySqlFile(UkListDto.class, SqlFiles.UK_LIST_CONDITIONAL_SEARCH, ukListCondition).getResultList();
+
+		reload(ukList);
+
+		return "list.jsp";
+	}
+
+	/**
+	 * 「新規作成」ボタン押下時
+	 * @return
+	 */
+	@Execute(input="index")
+	public String newCreate(){
+
+		//themeNoに入力があったら、テーママスタにthemeNoがあるか検索
+		//なければエラーを返す
+		if(ukListForm.themeNo != ""){
+			ThemeMaster check = themeMasterService.findById(ukListForm.themeNo);
+			if(check == null){
+				ukListForm.errMessage = ukListConstant.noThemeNoErr;
+				return "list.jsp";
+			}
+		}
+
+		//挿入用エンティティを宣言
+		AnkenRireki ankenRireki = new AnkenRireki();
+		Anken anken = new Anken();
+		UriageKeikaku tounendo = new UriageKeikaku();
+		UriageKeikaku jinendo = new UriageKeikaku();
+
+		//案件テーブルを新規作成
+		anken.ankenId = null;
+		anken.latestRirekiNo = 1;
+		anken.insertDate = new Timestamp(System.currentTimeMillis());
+		anken.updateDate = null;
+
+		ankenService.insert(anken);
+		//新規作成したテーブルを取得
+		Anken newAnken = jdbcManager.selectBySql(Anken.class, "select * from anken where anken_id = last_insert_id()").getSingleResult();
+
+		//案件履歴テーブルを新規作成
+		Beans.copy(ukListForm, ankenRireki)
+			.numberConverter("###,###", AnkenRirekiNames.jutyugaku()
+					,AnkenRirekiNames.ukYokuyoku()).excludesWhitespace().execute();
+		ankenRireki.ankenRirekiId = null;
+		ankenRireki.ankenRirekiNo = 1;
+		ankenRireki.ankenId = newAnken.ankenId;
+		ankenRireki.ukConditionCode = 1;//新規
+		ankenRireki.insertDate = null;
+		//TODO userDataDtoがNULLあとで調整
+		ankenRireki.insertEmpNo = "sse802563";//userDataDto.empNo;
+
+		ankenRirekiService.insert(ankenRireki);
+
+		//新作成したテーブルを取得
+		AnkenRireki newAnkenRireki = jdbcManager.selectBySql(AnkenRireki.class, "select * from anken_rireki where anken_rireki_id = last_insert_id()").getSingleResult();
+		ukListForm.newInsert = Integer.toString(newAnkenRireki.ankenRirekiId);
+
+		//テーマ親番に入力があれば、テーママスタを修正
+		if(ukListForm.themeGroup!=""){
+			ThemeMaster themeMaster = new ThemeMaster();
+			themeMaster.themeNo = ukListForm.themeNo;
+			themeMaster.themeGroup = ukListForm.themeGroup;
+			themeMasterService.updateThemeGroup(themeMaster);
+		}
+
+		//売上計画があれば、売上計画を挿入
+		if(!(ukListForm.tounendoTotal.equals("0"))){
+			tounendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			tounendo.themeNo = ukListForm.themeNo;
+			tounendo.nendo  = Integer.parseInt(ukListForm.searchNendo);
+			tounendo.ukApr = ug.util.StringUtil.convertString(ukListForm.tounendoApr);
+			tounendo.ukMay = ug.util.StringUtil.convertString(ukListForm. tounendoMay);
+			tounendo.ukJun = ug.util.StringUtil.convertString(ukListForm. tounendoJun);
+			tounendo.ukJul = ug.util.StringUtil.convertString(ukListForm. tounendoJul);
+			tounendo.ukAug = ug.util.StringUtil.convertString(ukListForm. tounendoAug);
+			tounendo.ukSep = ug.util.StringUtil.convertString(ukListForm. tounendoSep);
+			tounendo.ukOct = ug.util.StringUtil.convertString(ukListForm. tounendoOct);
+			tounendo.ukNov = ug.util.StringUtil.convertString(ukListForm. tounendoNov);
+			tounendo.ukDec = ug.util.StringUtil.convertString(ukListForm. tounendoDec);
+			tounendo.ukJan = ug.util.StringUtil.convertString(ukListForm. tounendoJan);
+			tounendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. tounendoFeb);
+			tounendo.ukMar = ug.util.StringUtil.convertString(ukListForm. tounendoMar);
+			tounendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. tounendoKamiki);
+			tounendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. tounendoShimoki);
+			tounendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. tounendoTotal);
+
+			uriageKeikakuService.insert(tounendo);
+		}
+
+		if(!(ukListForm.jinendoTotal.equals("0"))){
+			jinendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			jinendo.nendo = Integer.parseInt(ukListForm.searchNendo) + 1;
+			jinendo.themeNo = ukListForm.themeNo;
+			jinendo.ukApr = ug.util.StringUtil.convertString(ukListForm. jinendoApr);
+			jinendo.ukMay = ug.util.StringUtil.convertString(ukListForm. jinendoMay);
+			jinendo.ukJun = ug.util.StringUtil.convertString(ukListForm. jinendoJun);
+			jinendo.ukJul = ug.util.StringUtil.convertString(ukListForm. jinendoJul);
+			jinendo.ukAug = ug.util.StringUtil.convertString(ukListForm. jinendoAug);
+			jinendo.ukSep = ug.util.StringUtil.convertString(ukListForm. jinendoSep);
+			jinendo.ukOct = ug.util.StringUtil.convertString(ukListForm. jinendoOct);
+			jinendo.ukNov = ug.util.StringUtil.convertString(ukListForm. jinendoNov);
+			jinendo.ukDec = ug.util.StringUtil.convertString(ukListForm. jinendoDec);
+			jinendo.ukJan = ug.util.StringUtil.convertString(ukListForm. jinendoJan);
+			jinendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. jinendoFeb);
+			jinendo.ukMar = ug.util.StringUtil.convertString(ukListForm. jinendoMar);
+			jinendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. jinendoKamiki);
+			jinendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. jinendoShimoki);
+			jinendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. jinendoTotal);
+
+
+			uriageKeikakuService.insert(jinendo);
+		}
+
+		search();
+
+		return "list.jsp";
+	}
+
+	/**
+	 * 「更新」ボタン押下時
+	 * 削除、失注、終了テーマは更新しても状態が変化しない。
+	 * もう一度テーマを扱いたい場合は新規登録ボタンで新しく作成する。（原価情報は引き継がれない）
+	 * @return
+	 */
+	@Execute(input="index")
+	public String update(){
+
+		//themeNoに入力があったら、テーママスタにthemeNoがあるか検索
+		//なければエラーを返す
+		if(ukListForm.themeNo != ""){
+			ThemeMaster check = themeMasterService.findById(ukListForm.themeNo);
+			if(check == null){
+				ukListForm.errMessage = ukListConstant.noThemeNoErr;
+				return "list.jsp";
+			}
+		}
+
+		AnkenRireki ankenRireki = new AnkenRireki();
+		Anken anken = new Anken();
+		UriageKeikaku tounendo = new UriageKeikaku();
+		UriageKeikaku jinendo = new UriageKeikaku();
+
+
+		//入力フォームの情報を引き継ぐため更新ボタンを連続して押下されると正しい案件履歴番号が設定されない
+		//フォームの案件履歴番号をインクリメントしても良いが、複数ユーザから更新がかかる可能性を考慮すると
+		//同じトランザクションで更新対象の案件テーブルから最新案件履歴番号を再取得した上で更新をかけたほうが良い。
+		/* これでは駄目
+		anken.ankenId = Integer.parseInt(ukListForm.ankenId);
+		anken.latestRirekiNo = Integer.parseInt(ukListForm.ankenRirekiNo) + 1;
+		anken.insertDate = null;
+		*/
+		anken = ankenService.findById(Integer.parseInt(ukListForm.ankenId));
+		anken.latestRirekiNo += 1;
+		//nullだとDB側でcurrent_time()を取得
+		anken.updateDate = null;
+
+
+		//挿入日時以外を更新
+		jdbcManager.update(anken).excludes(AnkenNames.insertDate()).execute();
+
+		//beansでざっくりコピー
+		//入力なしも空白で更新する
+		Beans.copy(ukListForm, ankenRireki)
+			.numberConverter("###,###", AnkenRirekiNames.jutyugaku(), AnkenRirekiNames.ukYokuyoku())
+			.execute();
+
+		//beans.copyで対応できないプロパティを修正
+		ankenRireki.ankenRirekiId = null;//自動採番
+		ankenRireki.ankenRirekiNo = anken.latestRirekiNo;
+		ankenRireki.ankenId = anken.ankenId;
+		//nullだとDB側でcurrent_time()を取得
+		ankenRireki.insertDate = null;
+		//TODO userDataDtoがNULLあとで調整
+		ankenRireki.insertEmpNo = "sse802563";//userDataDto.empNo;
+
+		//案件履歴テーブルに最新情報をインサート処理
+		ankenRirekiService.insert(ankenRireki);
+
+		//新規作成したテーブルを取得。更新フラグを立てる。
+		AnkenRireki newAnkenRireki = jdbcManager.selectBySql(AnkenRireki.class, "select * from anken_rireki where anken_rireki_id = last_insert_id()").getSingleResult();
+		ukListForm.newUpdate = Integer.toString(newAnkenRireki.ankenRirekiId);
+
+		//テーマ親番に入力があれば、テーママスタを修正
+		if(ukListForm.themeGroup!=""){
+			ThemeMaster themeMaster = new ThemeMaster();
+			themeMaster.themeNo = ukListForm.themeNo;
+			themeMaster.themeGroup = ukListForm.themeGroup;
+			themeMasterService.updateThemeGroup(themeMaster);
+		}
+
+		//TODO ここから表示まで完全に同じ処理の可能性あり
+		//売上計画があれば、売上計画を挿入
+		if(!(ukListForm.tounendoTotal.equals("0"))){
+			tounendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			tounendo.themeNo = ukListForm.themeNo;
+			tounendo.nendo  = Integer.parseInt(ukListForm.searchNendo);
+			tounendo.ukApr = ug.util.StringUtil.convertString(ukListForm.tounendoApr);
+			tounendo.ukMay = ug.util.StringUtil.convertString(ukListForm. tounendoMay);
+			tounendo.ukJun = ug.util.StringUtil.convertString(ukListForm. tounendoJun);
+			tounendo.ukJul = ug.util.StringUtil.convertString(ukListForm. tounendoJul);
+			tounendo.ukAug = ug.util.StringUtil.convertString(ukListForm. tounendoAug);
+			tounendo.ukSep = ug.util.StringUtil.convertString(ukListForm. tounendoSep);
+			tounendo.ukOct = ug.util.StringUtil.convertString(ukListForm. tounendoOct);
+			tounendo.ukNov = ug.util.StringUtil.convertString(ukListForm. tounendoNov);
+			tounendo.ukDec = ug.util.StringUtil.convertString(ukListForm. tounendoDec);
+			tounendo.ukJan = ug.util.StringUtil.convertString(ukListForm. tounendoJan);
+			tounendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. tounendoFeb);
+			tounendo.ukMar = ug.util.StringUtil.convertString(ukListForm. tounendoMar);
+			tounendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. tounendoKamiki);
+			tounendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. tounendoShimoki);
+			tounendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. tounendoTotal);
+
+			uriageKeikakuService.insert(tounendo);
+		}
+
+		if(!(ukListForm.jinendoTotal.equals("0"))){
+			jinendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			jinendo.nendo = Integer.parseInt(ukListForm.searchNendo) + 1;
+			jinendo.themeNo = ukListForm.themeNo;
+			jinendo.ukApr = ug.util.StringUtil.convertString(ukListForm. jinendoApr);
+			jinendo.ukMay = ug.util.StringUtil.convertString(ukListForm. jinendoMay);
+			jinendo.ukJun = ug.util.StringUtil.convertString(ukListForm. jinendoJun);
+			jinendo.ukJul = ug.util.StringUtil.convertString(ukListForm. jinendoJul);
+			jinendo.ukAug = ug.util.StringUtil.convertString(ukListForm. jinendoAug);
+			jinendo.ukSep = ug.util.StringUtil.convertString(ukListForm. jinendoSep);
+			jinendo.ukOct = ug.util.StringUtil.convertString(ukListForm. jinendoOct);
+			jinendo.ukNov = ug.util.StringUtil.convertString(ukListForm. jinendoNov);
+			jinendo.ukDec = ug.util.StringUtil.convertString(ukListForm. jinendoDec);
+			jinendo.ukJan = ug.util.StringUtil.convertString(ukListForm. jinendoJan);
+			jinendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. jinendoFeb);
+			jinendo.ukMar = ug.util.StringUtil.convertString(ukListForm. jinendoMar);
+			jinendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. jinendoKamiki);
+			jinendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. jinendoShimoki);
+			jinendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. jinendoTotal);
+
+
+			uriageKeikakuService.insert(jinendo);
+		}
+
+		search();
+
+		return "list.jsp";
+	}
+
+	/**
+	 * 「削除」ボタン押下時
+	 * 削除は論理削除のため、実際は更新処理。
+	 * 削除事由も受け付けるべきなので、普通に更新もする。
+	 * 削除時の売上計画も保持。売上計画がある案件の削除は基本的にしないだろうけど。
+	 * @return
+	 */
+	@Execute(input="index")
+	public String delete(){
+
+		//TODO とりあえず更新を丸パクリ。調整中。
+		AnkenRireki ankenRireki = new AnkenRireki();
+		Anken anken = new Anken();
+		UriageKeikaku tounendo = new UriageKeikaku();
+		UriageKeikaku jinendo = new UriageKeikaku();
+
+
+		//入力フォームの情報を引き継ぐため更新ボタンを連続して押下されると正しい案件履歴番号が設定されない
+		//フォームの案件履歴番号をインクリメントしても良いが、複数ユーザから更新がかかる可能性を考慮すると
+		//同じトランザクションで更新対象の案件テーブルから最新案件履歴番号を再取得した上で更新をかけたほうが良い。
+		/* これでは駄目
+		anken.ankenId = Integer.parseInt(ukListForm.ankenId);
+		anken.latestRirekiNo = Integer.parseInt(ukListForm.ankenRirekiNo) + 1;
+		anken.insertDate = null;
+		*/
+		anken = ankenService.findById(Integer.parseInt(ukListForm.ankenId));
+		anken.latestRirekiNo += 1;
+		//nullだとDB側でcurrent_time()を取得
+		anken.updateDate = null;
+
+
+		//挿入日時以外を更新
+		jdbcManager.update(anken).excludes(AnkenNames.insertDate()).execute();
+
+		//beansでざっくりコピー
+		//入力なしも空白で更新する
+		Beans.copy(ukListForm, ankenRireki)
+			.numberConverter("###,###", AnkenRirekiNames.jutyugaku(), AnkenRirekiNames.ukYokuyoku())
+			.execute();
+
+		//beans.copyで対応できないプロパティを修正
+		ankenRireki.ankenRirekiId = null;//自動採番
+		ankenRireki.ankenRirekiNo = anken.latestRirekiNo;
+		ankenRireki.ankenId = anken.ankenId;
+		//nullだとDB側でcurrent_time()を取得
+		ankenRireki.insertDate = null;
+		//TODO userDataDtoがNULLあとで調整
+		ankenRireki.insertEmpNo = "sse802563";//userDataDto.empNo;
+
+		/******************* ここだけ更新処理と違う *******************/
+		ankenRireki.ukConditionCode = 4;//削除
+
+		//案件履歴テーブルに最新情報をインサート処理
+		ankenRirekiService.insert(ankenRireki);
+
+		//新規作成したテーブルを取得。更新フラグを立てる。
+		AnkenRireki newAnkenRireki = jdbcManager.selectBySql(AnkenRireki.class, "select * from anken_rireki where anken_rireki_id = last_insert_id()").getSingleResult();
+		ukListForm.newDelete = Integer.toString(newAnkenRireki.ankenRirekiId);
+
+		//テーマ親番に入力があれば、テーママスタを修正
+		if(ukListForm.themeGroup!=""){
+			ThemeMaster themeMaster = new ThemeMaster();
+			themeMaster.themeNo = ukListForm.themeNo;
+			themeMaster.themeGroup = ukListForm.themeGroup;
+			themeMasterService.updateThemeGroup(themeMaster);
+		}
+
+		//TODO ここから表示まで完全に同じ処理の可能性あり
+		//売上計画があれば、売上計画を挿入
+		if(!(ukListForm.tounendoTotal.equals("0"))){
+			tounendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			tounendo.nendo  = Integer.parseInt(ukListForm.searchNendo);
+			tounendo.themeNo = ukListForm.themeNo;
+			tounendo.ukApr = ug.util.StringUtil.convertString(ukListForm.tounendoApr);
+			tounendo.ukMay = ug.util.StringUtil.convertString(ukListForm. tounendoMay);
+			tounendo.ukJun = ug.util.StringUtil.convertString(ukListForm. tounendoJun);
+			tounendo.ukJul = ug.util.StringUtil.convertString(ukListForm. tounendoJul);
+			tounendo.ukAug = ug.util.StringUtil.convertString(ukListForm. tounendoAug);
+			tounendo.ukSep = ug.util.StringUtil.convertString(ukListForm. tounendoSep);
+			tounendo.ukOct = ug.util.StringUtil.convertString(ukListForm. tounendoOct);
+			tounendo.ukNov = ug.util.StringUtil.convertString(ukListForm. tounendoNov);
+			tounendo.ukDec = ug.util.StringUtil.convertString(ukListForm. tounendoDec);
+			tounendo.ukJan = ug.util.StringUtil.convertString(ukListForm. tounendoJan);
+			tounendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. tounendoFeb);
+			tounendo.ukMar = ug.util.StringUtil.convertString(ukListForm. tounendoMar);
+			tounendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. tounendoKamiki);
+			tounendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. tounendoShimoki);
+			tounendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. tounendoTotal);
+
+			uriageKeikakuService.insert(tounendo);
+		}
+
+		if(!(ukListForm.jinendoTotal.equals("0"))){
+			jinendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			jinendo.nendo = Integer.parseInt(ukListForm.searchNendo) + 1;
+			jinendo.themeNo = ukListForm.themeNo;
+			jinendo.ukApr = ug.util.StringUtil.convertString(ukListForm. jinendoApr);
+			jinendo.ukMay = ug.util.StringUtil.convertString(ukListForm. jinendoMay);
+			jinendo.ukJun = ug.util.StringUtil.convertString(ukListForm. jinendoJun);
+			jinendo.ukJul = ug.util.StringUtil.convertString(ukListForm. jinendoJul);
+			jinendo.ukAug = ug.util.StringUtil.convertString(ukListForm. jinendoAug);
+			jinendo.ukSep = ug.util.StringUtil.convertString(ukListForm. jinendoSep);
+			jinendo.ukOct = ug.util.StringUtil.convertString(ukListForm. jinendoOct);
+			jinendo.ukNov = ug.util.StringUtil.convertString(ukListForm. jinendoNov);
+			jinendo.ukDec = ug.util.StringUtil.convertString(ukListForm. jinendoDec);
+			jinendo.ukJan = ug.util.StringUtil.convertString(ukListForm. jinendoJan);
+			jinendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. jinendoFeb);
+			jinendo.ukMar = ug.util.StringUtil.convertString(ukListForm. jinendoMar);
+			jinendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. jinendoKamiki);
+			jinendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. jinendoShimoki);
+			jinendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. jinendoTotal);
+
+
+			uriageKeikakuService.insert(jinendo);
+		}
+
+		//削除実行時は検索結果に必ず削除テーブルを含む
+		//セレクトボックスはSAStrutsにより、フォーム送信時にString配列に自動で格納されている。
+		//これを塗り替えるために特殊な処理が必要。
+		//状態コードが選択されていないとnullなので、その場合は状態コード検索そのものをしない。
+		ukListForm.searchConditionCodeList = StringUtil.addSelectBoxCondition(ukListForm.searchConditionCodeList, "4");
+
+		search();
+
+		return "list.jsp";
+	}
+
+	/**
+	 * 「失注削除」ボタン押下時
+	 * @return
+	 */
+	@Execute(input="index")
+	public String sittyu(){
+
+		//TODO とりあえず更新を丸パクリ。調整中。
+		AnkenRireki ankenRireki = new AnkenRireki();
+		Anken anken = new Anken();
+		UriageKeikaku tounendo = new UriageKeikaku();
+		UriageKeikaku jinendo = new UriageKeikaku();
+
+
+		//入力フォームの情報を引き継ぐため更新ボタンを連続して押下されると正しい案件履歴番号が設定されない
+		//フォームの案件履歴番号をインクリメントしても良いが、複数ユーザから更新がかかる可能性を考慮すると
+		//同じトランザクションで更新対象の案件テーブルから最新案件履歴番号を再取得した上で更新をかけたほうが良い。
+		/* これでは駄目
+		anken.ankenId = Integer.parseInt(ukListForm.ankenId);
+		anken.latestRirekiNo = Integer.parseInt(ukListForm.ankenRirekiNo) + 1;
+		anken.insertDate = null;
+		*/
+		anken = ankenService.findById(Integer.parseInt(ukListForm.ankenId));
+		anken.latestRirekiNo += 1;
+		//nullだとDB側でcurrent_time()を取得
+		anken.updateDate = null;
+
+
+		//挿入日時以外を更新
+		jdbcManager.update(anken).excludes(AnkenNames.insertDate()).execute();
+
+		//beansでざっくりコピー
+		//入力なしも空白で更新する
+		Beans.copy(ukListForm, ankenRireki)
+			.numberConverter("###,###", AnkenRirekiNames.jutyugaku(), AnkenRirekiNames.ukYokuyoku())
+			.execute();
+
+		//beans.copyで対応できないプロパティを修正
+		ankenRireki.ankenRirekiId = null;//自動採番
+		ankenRireki.ankenRirekiNo = anken.latestRirekiNo;
+		ankenRireki.ankenId = anken.ankenId;
+		//nullだとDB側でcurrent_time()を取得
+		ankenRireki.insertDate = null;
+		//TODO userDataDtoがNULLあとで調整
+		ankenRireki.insertEmpNo = "sse802563";//userDataDto.empNo;
+
+		/******************* ここだけ更新処理と違う *******************/
+		ankenRireki.ukConditionCode = 3;//削除
+
+		//案件履歴テーブルに最新情報をインサート処理
+		ankenRirekiService.insert(ankenRireki);
+
+		//新規作成したテーブルを取得。更新フラグを立てる。
+		AnkenRireki newAnkenRireki = jdbcManager.selectBySql(AnkenRireki.class, "select * from anken_rireki where anken_rireki_id = last_insert_id()").getSingleResult();
+		ukListForm.newDelete = Integer.toString(newAnkenRireki.ankenRirekiId);
+
+		//テーマ親番に入力があれば、テーママスタを修正
+		if(ukListForm.themeGroup!=""){
+			ThemeMaster themeMaster = new ThemeMaster();
+			themeMaster.themeNo = ukListForm.themeNo;
+			themeMaster.themeGroup = ukListForm.themeGroup;
+			themeMasterService.updateThemeGroup(themeMaster);
+		}
+
+		//TODO ここから表示まで完全に同じ処理の可能性あり
+		//売上計画があれば、売上計画を挿入
+		if(!(ukListForm.tounendoTotal.equals("0"))){
+			tounendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			tounendo.nendo  = Integer.parseInt(ukListForm.searchNendo);
+			tounendo.themeNo = ukListForm.themeNo;
+			tounendo.ukApr = ug.util.StringUtil.convertString(ukListForm.tounendoApr);
+			tounendo.ukMay = ug.util.StringUtil.convertString(ukListForm. tounendoMay);
+			tounendo.ukJun = ug.util.StringUtil.convertString(ukListForm. tounendoJun);
+			tounendo.ukJul = ug.util.StringUtil.convertString(ukListForm. tounendoJul);
+			tounendo.ukAug = ug.util.StringUtil.convertString(ukListForm. tounendoAug);
+			tounendo.ukSep = ug.util.StringUtil.convertString(ukListForm. tounendoSep);
+			tounendo.ukOct = ug.util.StringUtil.convertString(ukListForm. tounendoOct);
+			tounendo.ukNov = ug.util.StringUtil.convertString(ukListForm. tounendoNov);
+			tounendo.ukDec = ug.util.StringUtil.convertString(ukListForm. tounendoDec);
+			tounendo.ukJan = ug.util.StringUtil.convertString(ukListForm. tounendoJan);
+			tounendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. tounendoFeb);
+			tounendo.ukMar = ug.util.StringUtil.convertString(ukListForm. tounendoMar);
+			tounendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. tounendoKamiki);
+			tounendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. tounendoShimoki);
+			tounendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. tounendoTotal);
+
+			uriageKeikakuService.insert(tounendo);
+		}
+
+		if(!(ukListForm.jinendoTotal.equals("0"))){
+			jinendo.ankenRirekiId = newAnkenRireki.ankenRirekiId;
+			jinendo.nendo = Integer.parseInt(ukListForm.searchNendo) + 1;
+			jinendo.themeNo = ukListForm.themeNo;
+			jinendo.ukApr = ug.util.StringUtil.convertString(ukListForm. jinendoApr);
+			jinendo.ukMay = ug.util.StringUtil.convertString(ukListForm. jinendoMay);
+			jinendo.ukJun = ug.util.StringUtil.convertString(ukListForm. jinendoJun);
+			jinendo.ukJul = ug.util.StringUtil.convertString(ukListForm. jinendoJul);
+			jinendo.ukAug = ug.util.StringUtil.convertString(ukListForm. jinendoAug);
+			jinendo.ukSep = ug.util.StringUtil.convertString(ukListForm. jinendoSep);
+			jinendo.ukOct = ug.util.StringUtil.convertString(ukListForm. jinendoOct);
+			jinendo.ukNov = ug.util.StringUtil.convertString(ukListForm. jinendoNov);
+			jinendo.ukDec = ug.util.StringUtil.convertString(ukListForm. jinendoDec);
+			jinendo.ukJan = ug.util.StringUtil.convertString(ukListForm. jinendoJan);
+			jinendo.ukFeb = ug.util.StringUtil.convertString(ukListForm. jinendoFeb);
+			jinendo.ukMar = ug.util.StringUtil.convertString(ukListForm. jinendoMar);
+			jinendo.ukKamiki = ug.util.StringUtil.convertString(ukListForm. jinendoKamiki);
+			jinendo.ukShimoki = ug.util.StringUtil.convertString(ukListForm. jinendoShimoki);
+			jinendo.ukTotal = ug.util.StringUtil.convertString(ukListForm. jinendoTotal);
+
+
+			uriageKeikakuService.insert(jinendo);
+		}
+
+		//削除実行時は検索結果に必ず削除テーブルを含む
+		//セレクトボックスはSAStrutsにより、フォーム送信時にString配列に自動で格納されている。
+		//これを塗り替えるために特殊な処理が必要。
+		//状態コードが選択されていないとnullなので、その場合は状態コード検索そのものをしない。
+		ukListForm.searchConditionCodeList = StringUtil.addSelectBoxCondition(ukListForm.searchConditionCodeList, "3");
+
+		search();
+
+		return "list.jsp";
+	}
+
+	/**
+	 * formで受け取った検索条件をconditionに詰め替えるメソッド
+	 * @param form
+	 * @param condition
+	 */
+	private void refillCondition(UkListForm form, UkListCondition condition){
+		condition.tounendo = form.searchNendo;
+		condition.jinendo = String.valueOf(Integer.parseInt(form.searchNendo)+1);
+		condition.zennendo = String.valueOf(Integer.parseInt(form.searchNendo)-1);
+		condition.kokyakuName = form.searchKokyakuName;
+		condition.ankenName = form.searchAnkenName;
+		condition.jutyuName = form.searchJutyuName;
+		condition.kakudoList = form.searchKakudoList;
+		condition.hattyuTypeList = form.searchHattyuTypeList;
+		condition.eigyoList = form.searchEigyoList;
+		condition.conditionCodeList = form.searchConditionCodeList;
+		condition.sort = form.searchSort;
+	}
+
+	/**
+	 * 再表示のための処理をまとめたメソッド
+	 * 各種プルダウンリストの情報を取得し、売上計画管理表の小計を計算する。
+	 * @param ukList
+	 */
+	private void reload(List<UkListDto> ukList){
+		nendoList = jdbcManager.selectBySqlFile(String.class, SqlFiles.UK_LIST_SELECT_NENDO_LIST).getResultList();
+		eigyoList = empMasterService.getEigyoList();
+		kaihatsuGroupList = empMasterService.getKaihatsuGroupList();
+		hattyuTypeList = ugCodeMasterService.getHattyuTypeList();
+		kakudoList = ugCodeMasterService.getKakudoList();
+		conditionCodeList = ugCodeMasterService.getConditionCodeList();
+
+		//並び順が複雑なのでべた書き
+		subtotalKeys.add("◎");
+		subtotalKeys.add("◎井田（光）");
+		subtotalKeys.add("◎都丸");
+		subtotalKeys.add("◎曲輪");
+		subtotalKeys.add("◎Gr未設定");
+		//keys=""ならテーブルに隙間を開ける
+		subtotalKeys.add("");
+		subtotalKeys.add("○井田（光）");
+		subtotalKeys.add("○都丸");
+		subtotalKeys.add("○曲輪");
+		subtotalKeys.add("○Gr未設定");
+		subtotalKeys.add("◎＋○");
+		subtotalKeys.add("");
+		subtotalKeys.add("△井田（光）");
+		subtotalKeys.add("△都丸");
+		subtotalKeys.add("△曲輪");
+		subtotalKeys.add("△Gr未設定");
+		subtotalKeys.add("");
+		subtotalKeys.add("▲＋▼＋◆");
+		subtotalKeys.add("▲");
+		subtotalKeys.add("▼");
+		subtotalKeys.add("◆");
+		//subtotalKeys.add("▲＋▼＋◆永田計");
+		//subtotalKeys.add("▲＋▼＋◆畑野計");
+		subtotalKeys.add("");
+		subtotalKeys.add("◎＋○＋△");
+		subtotalKeys.add("◎＋○＋△永田");
+		subtotalKeys.add("◎＋○＋△畑野");
+		subtotalKeys.add("◎＋○＋△井田（光）");
+		subtotalKeys.add("◎＋○＋△都丸");
+		subtotalKeys.add("◎＋○＋△曲輪");
+		subtotalKeys.add("◎＋○＋△Gr未設定");
+		subtotalKeys.add("");
+		subtotalKeys.add("失注削除");
+
+		for(UgCodeMaster kakudo : kakudoList){
+			//確度コードのマップを登録
+			//小計の初期化
+			initSubtotal(kakudo.codeName);
+			for(EmpMaster kaihatsuGroupHead : kaihatsuGroupList){
+				//確度コード＋所属長の社員番号のマップを登録
+				initSubtotal(kakudo.codeName + kaihatsuGroupHead.shortEmpName);
+			}
+			//確度コード＋開発G設定なしのマップを登録
+			initSubtotal(kakudo.codeName + "Gr未設定");
+			for(EmpMaster eigyo : eigyoList ){
+				//確度コード＋営業担当の社員番号のマップを登録
+				initSubtotal(kakudo.codeName + eigyo.shortEmpName);
+			}
+		}
+
+		//小計の計算 実行して値を検証
+		for(UkListDto uk : ukList){
+			subtotal.put(uk.kakudoName, plusUk(subtotal.get(uk.kakudoName), uk));
+
+			if(uk.kaihatsuGroupHead!=null && uk.kaihatsuGroupHead.equals("")){
+				subtotal.put(uk.kakudoName + uk.kaihatsuGroupHeadName,
+					plusUk(subtotal.get(uk.kakudoName + uk.kaihatsuGroupHeadName), uk));
+			}else{
+				subtotal.put(uk.kakudoName + "Gr未設定",
+						plusUk(subtotal.get(uk.kakudoName + "Gr未設定"), uk));
+			}
+
+			subtotal.put(uk.kakudoName + uk.eigyoName,
+					plusUk(subtotal.get(uk.kakudoName + uk.eigyoName), uk));
+
+		}
+
+
+		//確度◎＋○計
+		String prefix = "◎＋○";
+		initSubtotal(prefix);
+		subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get("◎")));
+		subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get("○")));
+
+		//確度▲＋▼＋◆計
+		prefix = "▲＋▼＋◆";
+		initSubtotal(prefix);
+		subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get("▲")));
+		subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get("▼")));
+		subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get("◆")));
+
+		//確度◎＋○＋△計
+		prefix = "◎＋○＋△";
+		initSubtotal(prefix);
+		for(UgCodeMaster kakudo : kakudoList){
+			if(kakudo.codeId==104)break;
+
+			//確度コードを加算
+			subtotal.put(prefix, plusUk(subtotal.get(prefix), subtotal.get(kakudo.codeName)));
+
+			//確度コード＋所属長の社員番号のマップを加算
+			for(EmpMaster kaihatsuGroupHead : kaihatsuGroupList){
+				//マップにオブジェクトが格納されていなかったら初期値を格納
+				if(!subtotal.containsKey(prefix + kaihatsuGroupHead.shortEmpName)){
+					initSubtotal(prefix + kaihatsuGroupHead.shortEmpName);
+				}
+				subtotal.put(prefix + kaihatsuGroupHead.shortEmpName,
+						plusUk(subtotal.get(prefix + kaihatsuGroupHead.shortEmpName),
+								subtotal.get(kakudo.codeName + kaihatsuGroupHead.shortEmpName)));
+			}
+			//開発Gなしの場合
+			if(!subtotal.containsKey(prefix + "Gr未設定")){
+				initSubtotal(prefix + "Gr未設定");
+			}
+			subtotal.put(prefix + "Gr未設定",
+					plusUk(subtotal.get(prefix + "Gr未設定"),
+							subtotal.get(kakudo.codeName + "Gr未設定")));
+
+			//確度コード＋営業担当の社員番号のマップを加算
+			for(EmpMaster eigyo : eigyoList){
+				//マップにオブジェクトが格納されていなかったら初期値を格納
+				if(!subtotal.containsKey(prefix + eigyo.shortEmpName)){
+					initSubtotal(prefix + eigyo.shortEmpName);
+				}
+				subtotal.put(prefix + eigyo.shortEmpName,
+						plusUk(subtotal.get(prefix + eigyo.shortEmpName),
+								subtotal.get(kakudo.codeName + eigyo.shortEmpName)));
+			}
+		}
+
+		}
+
+	/**
+	 * toUkにfromUkの金額に当たるプロパティをすべて加算して返す
+	 * @param toUk
+	 * @param fromUk
+	 * @return
+	 */
+	private UkListDto plusUk(UkListDto toUk, UkListDto fromUk) {
+
+		toUk.jutyugaku += fromUk.jutyugaku;
+		toUk.ukYokuyoku += fromUk.ukYokuyoku;
+		toUk.tounendoApr += fromUk.tounendoApr;
+		toUk.tounendoMay += fromUk.tounendoMay;
+		toUk.tounendoJun += fromUk.tounendoJun;
+		toUk.tounendoJul += fromUk.tounendoJul;
+		toUk.tounendoAug += fromUk.tounendoAug;
+		toUk.tounendoSep += fromUk.tounendoSep;
+		toUk.tounendoOct += fromUk.tounendoOct;
+		toUk.tounendoNov += fromUk.tounendoNov;
+		toUk.tounendoDec += fromUk.tounendoDec;
+		toUk.tounendoJan += fromUk.tounendoJan;
+		toUk.tounendoFeb += fromUk.tounendoFeb;
+		toUk.tounendoMar += fromUk.tounendoMar;
+		toUk.jinendoApr += fromUk.jinendoApr;
+		toUk.jinendoMay += fromUk.jinendoMay;
+		toUk.jinendoJun += fromUk.jinendoJun;
+		toUk.jinendoJul += fromUk.jinendoJul;
+		toUk.jinendoAug += fromUk.jinendoAug;
+		toUk.jinendoSep += fromUk.jinendoSep;
+		toUk.jinendoOct += fromUk.jinendoOct;
+		toUk.jinendoNov += fromUk.jinendoNov;
+		toUk.jinendoDec += fromUk.jinendoDec;
+		toUk.jinendoJan += fromUk.jinendoJan;
+		toUk.jinendoFeb += fromUk.jinendoFeb;
+		toUk.jinendoMar += fromUk.jinendoMar;
+		toUk.tounendoKamiki += fromUk.tounendoKamiki;
+		toUk.tounendoShimoki += fromUk.tounendoShimoki;
+		toUk.tounendoTotal += fromUk.tounendoTotal;
+		toUk.jinendoKamiki += fromUk.jinendoKamiki;
+		toUk.jinendoShimoki += fromUk.jinendoShimoki;
+		toUk.jinendoTotal += fromUk.jinendoTotal;
+		toUk.zennendoTotal += fromUk.zennendoTotal;
+
+		return toUk;
+
+	}
+
+	/**
+	 * subtotalに新しい格納先を追加する
+	 * 同時にsubtotalKeysにキーを追加する（デバッグ用）
+	 * @param key
+	 */
+	private void initSubtotal(String key){
+		//デバッグ用　コメントアウトを外すとすべての小計を表示できる。
+		//subtotalKeys.add(key);
+		UkListDto initUk = new UkListDto();
+		initUk.initializeMoney();
+		subtotal.put(key, initUk);
+	}
+
+
+}
