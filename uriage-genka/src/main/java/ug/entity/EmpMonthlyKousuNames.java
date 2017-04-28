@@ -4,13 +4,14 @@ import java.math.BigDecimal;
 import javax.annotation.Generated;
 import org.seasar.extension.jdbc.name.PropertyName;
 import ug.entity.EmpMasterNames._EmpMasterNames;
+import ug.entity.NendoSortMasterNames._NendoSortMasterNames;
 import ug.entity.ThemeMasterNames._ThemeMasterNames;
 
 /**
  * {@link EmpMonthlyKousu}のプロパティ名の集合です。
  * 
  */
-@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesModelFactoryImpl"}, date = "2017/04/26 17:27:54")
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesModelFactoryImpl"}, date = "2017/04/28 15:30:26")
 public class EmpMonthlyKousuNames {
 
     /**
@@ -101,6 +102,15 @@ public class EmpMonthlyKousuNames {
      */
     public static _EmpMasterNames empMaster() {
         return new _EmpMasterNames("empMaster");
+    }
+
+    /**
+     * nendoSortMasterのプロパティ名を返します。
+     * 
+     * @return nendoSortMasterのプロパティ名
+     */
+    public static _NendoSortMasterNames nendoSortMaster() {
+        return new _NendoSortMasterNames("nendoSortMaster");
     }
 
     /**
@@ -224,6 +234,15 @@ public class EmpMonthlyKousuNames {
          */
         public _EmpMasterNames empMaster() {
             return new _EmpMasterNames(this, "empMaster");
+        }
+
+        /**
+         * nendoSortMasterのプロパティ名を返します。
+         * 
+         * @return nendoSortMasterのプロパティ名
+         */
+        public _NendoSortMasterNames nendoSortMaster() {
+            return new _NendoSortMasterNames(this, "nendoSortMaster");
         }
     }
 }

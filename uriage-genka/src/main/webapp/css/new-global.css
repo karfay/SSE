@@ -7,10 +7,12 @@ td {
 	font-size: medium;
 	padding: 0px 5px;
 	vertical-align: middle;
+	border: 1px solid black;
 }
 th {
   	font-size: medium;
   	padding: 0px 5px;
+  	border: 1px solid black;
 	background-color: mediumblue;
 	color: white;
 	font-weight: bold;

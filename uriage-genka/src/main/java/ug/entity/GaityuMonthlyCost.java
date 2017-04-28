@@ -2,6 +2,7 @@ package ug.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+
 import javax.annotation.Generated;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +14,7 @@ import javax.persistence.ManyToOne;
 
 /**
  * GaityuMonthlyCostエンティティクラス
- * 
+ *
  */
 @Entity
 @Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.EntityModelFactoryImpl"}, date = "2017/03/07 15:54:08")
@@ -64,4 +65,9 @@ public class GaityuMonthlyCost implements Serializable {
     @ManyToOne
     @JoinColumn(name = "emp_no", referencedColumnName = "emp_no")
     public EmpMaster empMaster;
+
+    /** nendoSortMaster関連プロパティ*/
+    @ManyToOne
+    @JoinColumn(name="month", referencedColumnName="month")
+    public NendoSortMaster nendoSortMaster;
 }

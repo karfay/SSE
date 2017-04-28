@@ -8,7 +8,7 @@ import ug.entity.MonthlyGenkaNames._MonthlyGenkaNames;
  * {@link NendoSortMaster}のプロパティ名の集合です。
  * 
  */
-@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesModelFactoryImpl"}, date = "2017/04/26 17:27:55")
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesModelFactoryImpl"}, date = "2017/04/28 15:30:26")
 public class NendoSortMasterNames {
 
     /**

@@ -24,7 +24,7 @@ import ug.entity.UriageKeikakuNames._UriageKeikakuNames;
  * 名前クラスの集約です。
  * 
  */
-@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesAggregateModelFactoryImpl"}, date = "2017/04/26 17:27:55")
+@Generated(value = {"S2JDBC-Gen 2.4.46", "org.seasar.extension.jdbc.gen.internal.model.NamesAggregateModelFactoryImpl"}, date = "2017/04/28 15:30:27")
 public class Names {
 
     /**

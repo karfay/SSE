@@ -2,6 +2,7 @@ package ug.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+
 import javax.annotation.Generated;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -64,4 +65,9 @@ public class EmpMonthlyKousu implements Serializable {
     @ManyToOne
     @JoinColumn(name = "emp_no", referencedColumnName = "emp_no")
     public EmpMaster empMaster;
+    
+    /** nendoSortMaster関連プロパティ*/
+    @ManyToOne
+    @JoinColumn(name="month", referencedColumnName="month")
+    public NendoSortMaster nendoSortMaster;
 }

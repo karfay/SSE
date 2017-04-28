@@ -42,7 +42,7 @@ public class MonthlyGenkaService extends AbstractService<MonthlyGenka> {
      * @param gkId
      * @return
      */
-    public List<MonthlyGenka> findByGkId(Integer gkId){
+    public List<MonthlyGenka> findByGkIdIncludeDelete(Integer gkId){
     	return select().innerJoin(genkaKanri(), eq(genkaKanri().gkId(), gkId))
     			.where(or(eq(gkConditionCode(), 401), eq(gkConditionCode(), 404)))
     			.getResultList();
@@ -75,6 +75,23 @@ public class MonthlyGenkaService extends AbstractService<MonthlyGenka> {
 				.innerJoin(nendoSortMaster())
 				.where(eq(themeGroup(), themeGroup))
 				.orderBy(asc(nendo()), asc(nendoSortMaster().sort()), asc(gkConditionCode()))
+				.getResultList();
+	}
+
+	/**
+	 * 引数gkIdの原価管理表で作成された月別原価詳細テーブルを取得する。
+	 * 仕掛り計、PJ計の再計算のために取得するため、401(月別)のみしか対象にしない。
+	 * 計算の簡易化のためソート順をテーマNO、年度、年度ソートマスタの月で抽出。
+	 * @param gkId
+	 * @return
+	 */
+	public List<MonthlyGenka> getMgListForCalcShikakari(String themeGroup) {
+		return select()
+				.innerJoin(nendoSortMaster())
+				.where(eq(themeGroup(),themeGroup)
+						,eq(gkConditionCode(), 401)
+						,isNotNull(themeNo()))
+				.orderBy(asc(themeNo()), asc(nendo()), asc(nendoSortMaster().sort()))
 				.getResultList();
 	}
 

@@ -47,7 +47,7 @@ div.unfixed{position: absolute;}
 table{
 	table-layout: fixed;
 	border-collapse: collapse;
-	border: solid thin black;
+	border: none;
 }
 .theme-no{width: 100px;}
 .theme-group{width: 100px;}
@@ -100,14 +100,7 @@ function initializeUnfixedHeight(){
 	$('div.unfixed').css('top', $('div.fixed').offset().top + $('div.fixed').height());
 	//$('div.list-body').css('top', $('div.list-header').offset().top + $('div.list-header').height());
 }
-/*
-//var listHeader = $('div#list-header');
-window.addEventListener('scroll', _hangleScroll, false);
-function _hangleScroll(){
-	$('div#list-header').css('left',  - window.scrollX + 8);
-	//console.log($('div#list-header').css('left'));
-}
-*/
+
 function checkMoney(obj){
 	str = obj.value;
 	if(str==''){
@@ -115,7 +108,7 @@ function checkMoney(obj){
 		return;
 	}
 	number = Number(str);
-	if(isInteger(number)==true){
+	if(isInteger(number)==true && number >= 0){
 		obj.value=number.toLocaleString();
 		return;
 	}
@@ -153,7 +146,7 @@ function checkKousu(obj){
 	}
 	if(str.match(/^([1-9]\d*|0)(\.\d)$/g))return;
 	number = Number(str);
-	if(isInteger(number)==true){
+	if(isInteger(number)==true && number >= 0){
 		obj.value = number.toLocaleString(undefined, {minimumFractionDigits: 1});
 		return;
 	}
@@ -175,7 +168,7 @@ function checkKousu(obj){
 	<div class="header" id="header">
 	${sysName} / ${pageName}
 	</div>
-
+<s:form>
 	<div class="fixed" id="fixed">
 		<c:if test="${!empty errMessage}">
 			<div class="error">
@@ -191,6 +184,7 @@ function checkKousu(obj){
 			</div>
 		</c:if>
 		<div class="space"></div>
+
 		<table border="1">
 			<tr>
 				<th class="sub">テーマ親番</th>
@@ -243,6 +237,18 @@ function checkKousu(obj){
 				<th class="sub">計画/実績<br />差異</th>
 				<td class="space"></td>
 				<th class="sub">プロジェクト<br />メンバー</th>
+				<th class="sub">合計</th>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==0 }">
+					<th class="sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==1 }">
+					<th class="sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">労務費</th>
@@ -264,6 +270,27 @@ function checkKousu(obj){
 				</td>
 				<td class="space"></td>
 		    	<th class="sub">計画</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="input">
+					<fmt:formatNumber var="KKousu" pattern="###,##0.0" value="${f:h(kt.KKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].KKousu"
+					value="${KKousu}" onblur="checkKousu(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<%--外注費は本来Costだけど、java側の処理上マップのキーをKousuにしている --%>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="input">
+					<fmt:formatNumber var="KKousu" value="${f:h(kt.KKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].KKousu"
+					value="${KKousu}" onblur="checkMoney(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">工数</th>
@@ -279,10 +306,31 @@ function checkKousu(obj){
 				value="${JKousu}" onblur="checkKousu(this)" />
 				</td>
 				<td class="space"></td>
-				<th class="sub" rowspan="2">売上金額</th>
+				<td class="space"></td>
 				<td class="space"></td>
 				<td class="space"></td>
 		    	<th class="sub">見込</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="input">
+					<fmt:formatNumber var="MKousu" pattern="###,##0.0" value="${f:h(kt.MKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].MKousu"
+					value="${MKousu}" onblur="checkKousu(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<%--外注費は本来Costだけど、java側の処理上マップのキーをKousuにしている --%>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="input">
+					<fmt:formatNumber var="MKousu" value="${f:h(kt.MKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].MKousu"
+					value="${MKousu}" onblur="checkMoney(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">単価</th>
@@ -300,7 +348,29 @@ function checkKousu(obj){
 				<td class="space"></td>
 				<td class="space"></td>
 				<td class="space"></td>
+				<td class="space"></td>
 		    	<th class="sub">実績</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="input">
+					<fmt:formatNumber var="JKousu" pattern="###,##0.0" value="${f:h(kt.JKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].JKousu"
+					value="${JKousu}" onblur="checkKousu(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<%--外注費は本来Costだけど、java側の処理上マップのキーをKousuにしている --%>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="input">
+					<fmt:formatNumber var="JKousu" value="${f:h(kt.JKousu)}" />
+					<html:text property="mapItemsItems[${s.index}][${s3.index}].JKousu"
+					value="${JKousu}" onblur="checkMoney(this)" />
+					</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -317,10 +387,26 @@ function checkKousu(obj){
 				value="${JGaityu}" onblur="checkMoney(this)" />
 				</td>
 				<td class="space"></td>
-				<td class="no-input"><fmt:formatNumber pattern="###,##0.0" value="${f:h(m.uriage)}" /></td>
+				<td class="space"></td>
 				<td class="space"></td>
 				<td class="space"></td>
 		    	<th class="sub">計/見 差異</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">
+					<fmt:formatNumber pattern="###,##0.0" value="${kt.KKousu - kt.MKousu }" />
+					</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">
+					<fmt:formatNumber value="${kt.KKousu - kt.MKousu }" />
+					</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -345,6 +431,22 @@ function checkKousu(obj){
 				<td class="space"></td>
 				<td class="space"></td>
 		    	<th class="sub">計/実 差異</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">
+					<fmt:formatNumber pattern="###,##0.0" value="${kt.KKousu - kt.JKousu }" />
+					</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">
+					<fmt:formatNumber value="${kt.KKousu - kt.JKousu }" />
+					</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -408,6 +510,18 @@ function checkKousu(obj){
 				<th class="sub">計画/実績<br />差異</th>
 				<td class="space"></td>
 				<th class="sub">プロジェクト<br />メンバー</th>
+				<th class="sub">合計</th>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==0 }">
+					<th class="sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==1 }">
+					<th class="sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">労務費</th>
@@ -429,6 +543,18 @@ function checkKousu(obj){
 				</td>
 				<td class="space"></td>
 		    	<th class="sub">計画</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">工数</th>
@@ -446,6 +572,18 @@ function checkKousu(obj){
 				<th class="sub" rowspan="2">平均単価</th>
 				<td class="space"></td>
 		    	<th class="sub">見込</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="sub">外注加工費</th>
@@ -461,6 +599,18 @@ function checkKousu(obj){
 				<td class="space"></td>
 				<td class="space"></td>
 		    	<th class="sub">実績</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -481,6 +631,18 @@ function checkKousu(obj){
 				</td>
 				<td class="space"></td>
 		    	<th class="sub">計/見 差異</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -499,6 +661,18 @@ function checkKousu(obj){
 				<th class="sub" rowspan="2">粗利率</th>
 				<td class="space"></td>
 		    	<th class="sub">計/実 差異</th>
+		    	<td class="no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -553,6 +727,18 @@ function checkKousu(obj){
 				<th class="shikakari-sub">計画/実績<br />差異</th>
 				<td class="space"></td>
 				<th class="shikakari-sub">プロジェクト<br />メンバー</th>
+				<th class="shikakari-sub">合計</th>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==0 }">
+					<th class="shikakari-sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+				<c:if test="${kt.gaityuFlag==1 }">
+					<th class="shikakari-sub">${kt.shortEmpName }</th>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="shikakari-sub">労務費</th>
@@ -574,6 +760,18 @@ function checkKousu(obj){
 				</td>
 				<td class="space"></td>
 		    	<th class="shikakari-sub">計画</th>
+		    	<td class="shikakari-no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="shikakari-sub">工数</th>
@@ -591,6 +789,18 @@ function checkKousu(obj){
 				<th class="shikakari-sub" rowspan="2">平均単価</th>
 				<td class="space"></td>
 		    	<th class="shikakari-sub">見込</th>
+		    	<td class="shikakari-no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 		    <tr>
 		    	<th class="shikakari-sub">外注加工費</th>
@@ -606,6 +816,18 @@ function checkKousu(obj){
 				<td class="space"></td>
 				<td class="space"></td>
 		    	<th class="shikakari-sub">実績</th>
+		    	<td class="shikakari-no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -626,6 +848,18 @@ function checkKousu(obj){
 				</td>
 				<td class="space"></td>
 		    	<th class="shikakari-sub">計/見 差異</th>
+		    	<td class="shikakari-no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -644,6 +878,18 @@ function checkKousu(obj){
 				<th class="shikakari-sub" rowspan="2">粗利率</th>
 				<td class="space"></td>
 		    	<th class="shikakari-sub">計/実 差異</th>
+		    	<td class="shikakari-no-input">要計算</td>
+		    	<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==0 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
+				<td class="space"></td>
+				<c:forEach var="kt" varStatus="s3" items="${mapItems }" begin="1">
+		    	<c:if test="${kt.gaityuFlag==1 }">
+					<td class="shikakari-no-input">要計算</td>
+				</c:if>
+				</c:forEach>
 		    </tr>
 
 		    <tr>
@@ -681,7 +927,9 @@ function checkKousu(obj){
 		    </c:forEach>
 		</c:forEach>
 		</table>
+		<div class="space"></div>
 	</div>
+</s:form>
 </div>
 <script type="text/javascript">
 //即時関数を利用してtableのヘッダを固定

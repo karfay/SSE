@@ -52,4 +52,14 @@ public class GenkaKanriService extends AbstractService<GenkaKanri> {
 	public GenkaKanri findByThemeGroup(String themeGroup) {
 		return select().where(eq(themeGroup(), themeGroup)).getSingleResult();
 	}
+
+	public GenkaKanri getKaihatsuTaisei(int gkId) {
+		// TODO 自動生成されたメソッド・スタブ
+		return select()
+				.where(eq(gkId(), gkId))
+				.innerJoin(themeMaster())
+				.innerJoin(themeMaster().empMonthlyKousuList())
+				.innerJoin(themeMaster().gaityuMonthlyCostList())
+				.getSingleResult();
+	}
 }

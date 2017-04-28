@@ -1,0 +1,22 @@
+create table URIAGE_KEIKAKU (
+    UK_ID int not null auto_increment,
+    NENDO int not null,
+    ANKEN_RIREKI_ID int not null,
+    THEME_NO varchar(10),
+    UK_APR decimal(14,0),
+    UK_MAY decimal(14,0),
+    UK_JUN decimal(14,0),
+    UK_JUL decimal(14,0),
+    UK_AUG decimal(14,0),
+    UK_SEP decimal(14,0),
+    UK_OCT decimal(14,0),
+    UK_NOV decimal(14,0),
+    UK_DEC decimal(14,0),
+    UK_JAN decimal(14,0),
+    UK_FEB decimal(14,0),
+    UK_MAR decimal(14,0),
+    UK_KAMIKI decimal(14,0),
+    UK_SHIMOKI decimal(14,0),
+    UK_TOTAL decimal(14,0),
+    constraint URIAGE_KEIKAKU_PK primary key(UK_ID, NENDO)
+);
