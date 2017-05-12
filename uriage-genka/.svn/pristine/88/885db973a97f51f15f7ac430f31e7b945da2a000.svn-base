@@ -1,8 +1,0 @@
-package ug.form;
-
-public class CommonForm {
-	public String sysMessage;
-	public String errMessage;
-	public static final String sysName = "売上原価管理システム";
-	public String pageName;
-}

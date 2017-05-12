@@ -1,8 +1,0 @@
-Charset=UTF-8
-ConnectionName=s2jdbc.dicon
-ConnectionUrl=jdbc\:mysql\://10.71.40.139\:3306/test
-DriverClass=com.mysql.jdbc.Driver
-DriverPath=/C\:/pleiades/workspace/management/src/main/webapp/WEB-INF/lib/mysql-connector-java-5.1.41-bin.jar|
-Pass=admin
-User=webuser
-eclipse.preferences.version=1

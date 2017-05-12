@@ -1,1 +1,0 @@
-drop table KEIKAKU_TANKA_MASTER;

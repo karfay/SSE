@@ -1,1 +1,0 @@
-drop table UG_AUTHORIZAITON_MASER;

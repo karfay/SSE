@@ -1,1 +1,0 @@
-drop table GAITYU_MONTHLY_COST;
