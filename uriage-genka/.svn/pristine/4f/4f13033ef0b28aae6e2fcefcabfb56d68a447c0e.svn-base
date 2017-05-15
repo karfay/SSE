@@ -1,0 +1,35 @@
+package ug.util;
+
+import java.util.Calendar;
+
+public class StringUtil {
+
+	/**
+	 * 現在日付から年度情報を取得して４桁の文字列で返す。
+	 * @return
+	 */
+	public static String getCurrentNendo(){
+		Calendar calendar = Calendar.getInstance();
+		String nendo;
+		//calenderクラスの月は0-11で表される
+		//1~3月は0~2
+		if(calendar.get(Calendar.MONTH)<3){
+			nendo = Integer.toString(calendar.get(Calendar.YEAR)-1);
+		}
+		else{
+			nendo = Integer.toString(calendar.get(Calendar.YEAR));
+		}
+		return nendo;
+	}
+
+	/**
+	 * 空白の場合はNULLとして詰め替える。
+	 * 検索条件などは空白によりエラーとなるため
+	 * @param from
+	 * @param to
+	 */
+	public static void refillExcludesWhiteSpace(String from, String to){
+		if(from=="")to = null;
+		else to = from;
+	}
+}

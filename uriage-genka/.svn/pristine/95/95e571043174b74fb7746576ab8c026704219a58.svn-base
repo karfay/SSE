@@ -1,0 +1,18 @@
+package ug.condition;
+
+import java.util.List;
+
+public class UkListCondition {
+
+	public String tounendo;
+	public String jinendo;
+	public String zennendo;
+	public String kokyakuName;
+	public String sort;
+	public String ankenName;
+	public String jutyuName;
+	public List<String> kakudoList;
+	public List<String> hattyuTypeList;
+	public List<String> eigyoList;
+	public List<String> conditionCodeList;
+}
