@@ -143,5 +143,25 @@ public class StringUtil {
 		}
 	}
 
+	/**
+	 *
+	 * @param nendoCalendar
+	 * @return
+	 */
+	public static Calendar addNendoCalendarMonth(Calendar nendoCalendar){
+		//12月のとき、月を進めても年度は進まない
+		if(nendoCalendar.get(Calendar.MONTH)==11){
+			nendoCalendar.add(Calendar.MONTH, 1);
+			nendoCalendar.add(Calendar.YEAR, -1);
+		//3月のとき、月を進めると年度も進む
+		}else if(nendoCalendar.get(Calendar.MONTH)==2){
+			nendoCalendar.add(Calendar.MONTH, 1);
+			nendoCalendar.add(Calendar.YEAR, 1);
+		}else{
+			nendoCalendar.add(Calendar.MONTH, 1);
+		}
+
+		return nendoCalendar;
+	}
 
 }

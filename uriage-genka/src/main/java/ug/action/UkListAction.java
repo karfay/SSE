@@ -134,6 +134,15 @@ public class UkListAction {
 		return "list.jsp";
 	}
 
+	@Execute(validator=false)
+	public String searchFromGkDetail(){
+		search();
+		reload(ukList);
+		ukListForm.sysMessage = ukListConstant.searchThemeGroup;
+		return "list.jsp";
+	}
+
+
 	/**
 	 * 「新規作成」ボタン押下時
 	 * @return
@@ -640,6 +649,7 @@ public class UkListAction {
 		condition.eigyoList = form.searchEigyoList;
 		condition.conditionCodeList = form.searchConditionCodeList;
 		condition.sort = form.searchSort;
+		condition.themeGroup = form.searchThemeGroup;
 	}
 
 	/**

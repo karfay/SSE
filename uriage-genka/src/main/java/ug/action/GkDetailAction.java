@@ -267,6 +267,13 @@ public class GkDetailAction {
 		return "gkDetail.jsp";
 		}
 
+	@Execute(validator=false)
+	public String showBikou(){
+		//TODO 備考を取得
+
+		return "gkBikou.jsp";
+	}
+
 
 	/**
 	 * テーマ親番を受け取って、仕掛り系とPJ合計を再計算する。
@@ -500,11 +507,6 @@ public class GkDetailAction {
 			//仕掛り計ならfixedUkから年度、月が一致する要素を検索して売上を格納
 			if(mg.gkConditionCode==402){
 				for(FixedUk fixedUk:fixedUkList){
-					//fiexdUkはカレンダーに対応しているので年度表示でない。
-					//年度に対応させる
-					if(fixedUk.month<=3 && fixedUk.month!=0){
-						fixedUk.nendo-=1;
-					}
 					if(mg.nendo==(fixedUk.nendo) && mg.month==fixedUk.month){
 						mgMap.put("uriage", fixedUk.uriage);
 						break;
@@ -570,23 +572,42 @@ public class GkDetailAction {
 	 * mgListとfixedUkListの整合性がとれている必要がある。
 	 */
 	private List<MonthlyGenka> setThemeNoToMonthlyGenka(List<MonthlyGenka> mgList, List<FixedUk> fixedUkList){
+//TODO 年度が上がるとおかしくなる。カレンダークラスに格納し直して判定すべき
 
 		int ukIndex = 0;
 		int mgIndex=0;
-		while(mgIndex < mgList.size()){
+		int ukMaxIndex = fixedUkList.size();
+		int mgMaxIndex= mgList.size();
+
+		String ukCalStr = fixedUkList.get(ukIndex).nendo + "/" + fixedUkList.get(ukIndex).month;
+		String mgCalStr = mgList.get(mgIndex).nendo + "/" + mgList.get(mgIndex).month;
+		Calendar ukCal = StringUtil.converCalendarFromNendoString(ukCalStr);
+		Calendar mgCal = StringUtil.converCalendarFromNendoString(mgCalStr);
+
+		while(mgIndex < mgMaxIndex){
+
 			//テーマNOを格納
 			mgList.get(mgIndex).themeNo = fixedUkList.get(ukIndex).themeNo;
-			//mgListとfixedUkListの年度を比較し、年度の古いリストのindexを進める。
-			if(mgList.get(mgIndex).nendo < fixedUkList.get(ukIndex).nendo){mgIndex++; continue;}
-			else if(mgList.get(mgIndex).nendo > fixedUkList.get(ukIndex).nendo){ukIndex++; continue;}
-			else{//年度が等しい時
-				//mgListとfixedUkListの月を比較し、月の古いリストのindexを進める。
-				if(mgList.get(mgIndex).month < fixedUkList.get(ukIndex).month){mgIndex++; continue;}
-				else if(mgList.get(mgIndex).month > fixedUkList.get(ukIndex).month){ukIndex++; continue;}
-				else{//年度、月いずれも等しい時
-					//両方のリストのindexを進める。
-					mgIndex++; ukIndex++; continue;
-				}
+
+			//fixedUkの年月の方が新しいならmgの参照を進める
+			if(ukCal.compareTo(mgCal) > 0){
+				mgIndex++;
+				mgCalStr = mgList.get(mgIndex).nendo + "/" + mgList.get(mgIndex).month;
+				mgCal = StringUtil.converCalendarFromNendoString(mgCalStr);
+			//mgの年月の方が新しいならfixedUkの参照を進める
+			}else if(ukCal.compareTo(mgCal) < 0){
+				ukIndex++;
+				ukCalStr = fixedUkList.get(ukIndex).nendo + "/" + fixedUkList.get(ukIndex).month;
+				ukCal = StringUtil.converCalendarFromNendoString(ukCalStr);
+			}else{
+				mgIndex++;
+				if(mgIndex == mgMaxIndex)break;
+				mgCalStr = mgList.get(mgIndex).nendo + "/" + mgList.get(mgIndex).month;
+				ukIndex++;
+				if(ukIndex == ukMaxIndex)break;
+				ukCalStr = fixedUkList.get(ukIndex).nendo + "/" + fixedUkList.get(ukIndex).month;
+				mgCal = StringUtil.converCalendarFromNendoString(mgCalStr);
+				ukCal = StringUtil.converCalendarFromNendoString(ukCalStr);
 			}
 		}
 		return mgList;
@@ -679,7 +700,7 @@ public class GkDetailAction {
 
 		//monthlyGenkatテーブルのうち、もっとも新しいテーブルが最新売上月よりも古い場合
 		//最新売上月までの月別原価テーブルを作成する。
-		while(checkDate.compareTo(latestUriageMonth)>=0){
+		while(checkDate.compareTo(latestUriageMonth)<0){
 			//一月進める
 			checkDate.add(Calendar.MONTH, 1);
 			MonthlyGenka insert = new MonthlyGenka();
@@ -731,14 +752,39 @@ public class GkDetailAction {
 	 * @param mg
 	 */
 	private void deleteMonthlyGenka(MonthlyGenka mg) {
-		// TODO 自動生成されたメソッド・スタブ
+
 		BigDecimal sumCheck = mg.KSum.add(mg.MSum).add(mg.JSum);
 		BigDecimal kousuCheck = mg.KKousu.add(mg.MKousu).add(mg.JKousu);
+		int log;
+		//月別原価テーブルに関連する社員別工数テーブル、外注別費用テーブルを検索
+		List<EmpMonthlyKousu> emkList = empMonthlyKousuService.getListFromMonthlyGenka(mg);
+		List<GaityuMonthlyCost> gmcList = gaityuMonthlyCostService.getListFromMonthlyGenka(mg);
+		int[] logs;
+		//工数も費用合計も0なら削除
 		if(sumCheck.compareTo(BigDecimal.ZERO)==0 && kousuCheck.compareTo(BigDecimal.ZERO)==0){
-			//社員別工数テーブル、外注別費用テーブルを検索
-			List<EmpMonthlyKousu> emcDeleteList = empMonthlyKousuService.
-		}
 
+			//関連テーブルがあれば削除
+			if(!emkList.isEmpty()){
+				logs = jdbcManager.deleteBatch(emkList).execute();
+			}
+			if(!gmcList.isEmpty()){
+				logs = jdbcManager.deleteBatch(gmcList).execute();
+			}
+			log = monthlyGenkaService.delete(mg);
+		//なにかしら入力がありそうなら削除対象テーブルに状態を移行
+		//画面に表示されるけど、集計はされない。入力内容を確認して消してもらうことを前提としている。
+		}else{
+			mg.gkConditionCode = 404;//削除対象
+			log = monthlyGenkaService.update(mg);
+			//工数のみ入力がある場合、ここで更新をかけないとupdateが実施されない
+			//関連テーブルがあれば更新
+			if(!emkList.isEmpty()){
+				logs = jdbcManager.updateBatch(emkList).execute();
+			}
+			if(!gmcList.isEmpty()){
+				logs = jdbcManager.updateBatch(gmcList).execute();
+			}
+		}
 	}
 
 	/**

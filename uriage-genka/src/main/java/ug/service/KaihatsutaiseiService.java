@@ -42,6 +42,10 @@ public class KaihatsutaiseiService extends AbstractService<Kaihatsutaisei> {
      * 引数gkIdの原価管理表の開発体制メンバーをすべてとりだす。
      * 名前も欲しいのでempMasterと結合。
      * 表示順を役職順でソートしたいのでempAuthRelationListとも結合。
+     *
+     * empMonthlyKousuService.getFromThemeGroup()
+     * gaityuMonthlyCostService.getFromThemeGroup()
+     * 両メソッドと社員のソート順が一緒になる必要がある。社員のソート順を変更する場合、上記２つのソート順も変更すること。
      * @param gkId
      * @return
      */
@@ -50,7 +54,7 @@ public class KaihatsutaiseiService extends AbstractService<Kaihatsutaisei> {
 				.where(eq(gkId(), gkId))
 				.innerJoin(empMaster())
 				.leftOuterJoin(empMaster().empAuthRelationList())
-				.orderBy(asc(gaityuFlag()), asc(empMaster().empAuthRelationList().authId()))
+				.orderBy(asc(gaityuFlag()), asc(empMaster().empAuthRelationList().authId()), asc(empNo()))
 				.getResultList();
 	}
 }

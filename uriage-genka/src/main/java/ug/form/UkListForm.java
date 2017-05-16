@@ -86,6 +86,8 @@ public class UkListForm extends CommonForm{
 	public String[] searchEigyoList;
 	public String[] searchConditionCodeList;
 	public String searchSort;
+	//TODO 原価管理表からのリンクから受け取る検索条件。売管ukListの画面からの入力は未実装
+	public String searchThemeGroup;
 
 	//枠の着色用
 	public String newInsert;

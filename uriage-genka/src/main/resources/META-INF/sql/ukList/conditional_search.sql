@@ -7,7 +7,7 @@ select
     ,ar.kokyaku_initial
     ,ar.anken_name
     ,ar.jutyu_name
-    ,tounendo.theme_no
+    ,ifnull(tounendo.theme_no, jinendo.THEME_NO) theme_no
     ,tm.theme_group
     ,ar.kaihatsu_group_head
     ,head.short_emp_name kaihatsu_group_head_name
@@ -80,8 +80,7 @@ on ar.anken_rireki_id = jinendo.anken_rireki_id
 left join (select * from uriage_keikaku uk3 where uk3.nendo = /*zennendo*/2016) zennendo
 on ar.anken_rireki_id = zennendo.anken_rireki_id
 left join theme_master tm
-on tounendo.theme_no = tm.theme_no
-
+on tm.THEME_NO = tounendo.theme_no or tm.THEME_NO = jinendo.THEME_NO
 where ((ar.nendo<=/*zennendo*/2016 and tounendo.nendo=/*tounendo*/2017) or (ar.nendo>=/*tounendo*/2017))
 /*IF kokyakuName != null*/
 and ar.kokyaku_name like concat('%',/*kokyakuName*/'','%')
@@ -96,13 +95,16 @@ and (ar.jutyu_name like concat('%',/*jutyuName*/'','%') or (ar.jutyu_name is nul
 and ar.kakudo_code in /*kakudoList*/(101, 102, 103, 104, 105, 106)
 /*END*/
 /*IF hattyuTypeList != null*/
-and ar.hattyu_type_code in /*hattyuTypeList*/(201, 202, 203, 204, 205, 206)
+and ar.hattyu_type_code in /*hattyuTypeList*/(210, 215, 220, 230, 240, 250, 260, 270)
 /*END*/
 /*IF eigyoList != null*/
 and ar.eigyo in /*eigyoList*/('sse801311', 'sse802347')
 /*END*/
 /*IF conditionCodeList != null*/
 and ar.uk_condition_code in /*conditionCodeList*/(1)
+/*END*/
+/*IF themeGroup != null*/
+and tm.theme_group = /*themeGroup*/'25401-531'
 /*END*/
 /*IF sort == "normal"*/
 order by ar.uk_condition_code, ar.kakudo_code, ar.nendo, ar.hattyu_type_code, ar.kokyaku_initial

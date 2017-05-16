@@ -451,12 +451,13 @@ function setMembers(list, selector){
 		selector = selector.next('td');
 	}
 }
-//pj合計を再計算する
-function calculatePjTotal(){
 /*----------------------------------------------------------------------------------------------------------------------------------*/
+//pj合計を再計算する
+//計算処理を仕掛り計の計算から引用してきたので、一部変数名がshikakariのままになっているが、計算しているのはプロジェクト合計。
+function calculatePjTotal(){
 	//PJ合計
-	//pj合計のtrのクラスは0
-	pjTotal = $('tr.0');
+	totalIndex = $('th#pj-total').parent('tr').attr('class');
+	pjTotal = $('tr.'+ totalIndex);
 
 	//計算結果を格納する変数
 	kroumuhi = 0; mroumuhi = 0; jroumuhi = 0; kmgap = 0; kjgap = 0;
@@ -719,8 +720,15 @@ function setHiddenInputValue(){
 			</tr>
 		</table>
 		<input type="button" onclick="location.href='../gkCreate/?gkId=${gk.gkId }'" value="基本情報を修正" class="normal" />
-		<html:submit property="/ukList/" value="売上計画内訳" styleClass="normal" />
-		<html:submit property="showBikou" value="備考・状況報告" styleClass="normal" />
+		<%--
+		売上計画管理表（UkList）のseachメソッドに検索条件を送る。
+		検索条件はテーマ親番と年度情報。売管では当年度以降のテーブルをすべて取得するので、
+		当年度をもっとも古い年度にしておけば、もれなく取得できる。
+		monthlyGenkaの0番目はプロジェクト合計テーブルが格納され、プロジェクト合計テーブルにはもっとも古い年度が格納されている。
+		例外として、monthlyGenkaの0番目が削除対象テーブルになる場合があるが、このときも削除対象テーブルがもっとも古い年度をもつ。
+		 --%>
+		<input type="button" onclick="window.open('../ukList/searchFromGkDetail?searchThemeGroup=${gk.themeGroup }&searchNendo=${monthlyGenka[0].nendo }', '_blank')" value="売上計画内訳" class="normal" />
+		<html:submit property="showBikou" value="備考・状況報告" styleClass="normal" target="_blank" />
 		<html:submit property="update" value="原価情報を更新" styleClass="update" onclick="return checkUpdate();" />
 		<div class="space"></div>
 	</div>
@@ -1035,7 +1043,7 @@ function setHiddenInputValue(){
 		     --%>
 	<c:if test="${m.gkConditionCode==403 }">
 		    <tr class="${s.index}">
-		    	<th>プロジェクト合計</th>
+		    	<th id="pj-total">プロジェクト合計</th>
 		        <th class="sub">計画</th>
 				<th class="sub">見込</th>
 				<th class="sub">実績</th>
@@ -1481,12 +1489,12 @@ function setHiddenInputValue(){
 				<html:hidden property="mapItemsItems[${s.index }][${s3.index }].gaityuFlag" value="${kt.gaityuFlag }" />
 			</c:forEach>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th colspan="4" id='themeNo' class="sakujo-sub">削除対象
 		        </th>
 		    </tr>
-		    <tr class="sakujo ${s.index}">
-		    	<th>${f:h(m.nendo)} / ${f:h(m.month)}</th>
+		    <tr class="${s.index}">
+		    	<th class="sakujo-sub">${f:h(m.nendo)} / ${f:h(m.month)}</th>
 		        <th class="sakujo sub">計画</th>
 				<th class="sakujo sub">見込</th>
 				<th class="sakujo sub">実績</th>
@@ -1508,7 +1516,7 @@ function setHiddenInputValue(){
 				</c:if>
 				</c:forEach>
 		    </tr>
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">労務費</th>
 		    	<td class="sakujo no-input apppend-hidden" id="mgKRoumuhi"><%--<fmt:formatNumber value="${f:h(m.KRoumuhi)}" /> --%>
 		    	<fmt:formatNumber value="${f:h(m.KRoumuhi)}" />
@@ -1551,7 +1559,7 @@ function setHiddenInputValue(){
 				</c:if>
 				</c:forEach>
 		    </tr>
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">工数</th>
 		    	<td class="sakujo no-input  apppend-hidden" id="mgKKousu"><fmt:formatNumber pattern="###,##0.0" value="${f:h(m.KKousu)}"/>
 		    	<html:hidden property="mapItemsItems[${s.index}][${s2.index}].KKousu" value="${m.KKousu }" styleId="hiddenKKousu" />
@@ -1591,7 +1599,7 @@ function setHiddenInputValue(){
 				</c:if>
 				</c:forEach>
 		    </tr>
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">単価</th>
 		    	<td class="sakujo no-input" id="mgKTanka"><fmt:formatNumber value="${f:h(m.KTanka)}" /></td>
 		    	<td class="sakujo input" id="mgMTanka">
@@ -1632,7 +1640,7 @@ function setHiddenInputValue(){
 				</c:forEach>
 		    </tr>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">外注加工費</th>
 		    	<td class="sakujo no-input  apppend-hidden" id="mgKGaityu"><fmt:formatNumber value="${f:h(m.KGaityu)}" />
 		    	<html:hidden property="mapItemsItems[${s.index}][${s2.index}].KGaityu" value="${m.KGaityu }" styleId="hiddenKGaityu"/>
@@ -1668,7 +1676,7 @@ function setHiddenInputValue(){
 				</c:forEach>
 		    </tr>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">旅費交通費</th>
 		    	<td class="sakujo input" id="mgKRyohi">
 		    	<fmt:formatNumber var="KRyohi" pattern="###,##0" value="${f:h(m.KRyohi)}" />
@@ -1708,7 +1716,7 @@ function setHiddenInputValue(){
 				</c:forEach>
 		    </tr>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">その他経費</th>
 		    	<td class="sakujo input" id="mgKSonota">
 		    	<fmt:formatNumber var="KSonota" pattern="###,##0" value="${f:h(m.KSonota)}" />
@@ -1727,7 +1735,7 @@ function setHiddenInputValue(){
 				</td>
 		    </tr>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">経費合計</th>
 		    	<td class="sakujo no-input  apppend-hidden" id="mgKKeihi"><fmt:formatNumber value="${f:h(m.KKeihi)}" />
 		    	<html:hidden property="mapItemsItems[${s.index}][${s2.index}].KKeihi" value="${m.KKeihi }" styleId="hiddenKKeihi" />
@@ -1740,7 +1748,7 @@ function setHiddenInputValue(){
 		    	</td>
 		    </tr>
 
-		    <tr class="sakujo ${s.index}">
+		    <tr class="${s.index}">
 		    	<th class="sakujo sub">合計</th>
 		    	<td class="sakujo no-input  apppend-hidden" id="mgKTotal"><fmt:formatNumber value="${f:h(m.KSum)}" />
 		    	<html:hidden property="mapItemsItems[${s.index}][${s2.index}].KSum" value="${m.KSum }" styleId="hiddenKTotal" />

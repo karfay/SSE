@@ -53,7 +53,7 @@ public class GaityuMonthlyCostService extends AbstractService<GaityuMonthlyCost>
 
 	/**
 	 * 引数のテーマ親番から、その原価管理表に参加しているメンバーの工数を抽出する
-	 * 年度、年度ソートマスタの月順に昇順ソート
+	 * 年度、年度ソートマスタの月順、社員番号順に昇順ソート
 	 * @param themeGroup
 	 * @return
 	 */
@@ -62,7 +62,9 @@ public class GaityuMonthlyCostService extends AbstractService<GaityuMonthlyCost>
 		return select()
 				.innerJoin(themeMaster(), eq(themeMaster().themeGroup(), themeGroup))
 				.innerJoin(nendoSortMaster())
-				.orderBy(asc(nendo()), asc(nendoSortMaster().month()))
+				.innerJoin(empMaster())
+				.leftOuterJoin(empMaster().empAuthRelationList())
+				.orderBy(asc(nendo()), asc(nendoSortMaster().month()), asc(empMaster().empAuthRelationList().authId()),asc(empNo()))
 				.getResultList();
 	}
 

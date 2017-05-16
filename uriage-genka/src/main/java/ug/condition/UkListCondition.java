@@ -14,4 +14,5 @@ public class UkListCondition {
 	public String[] hattyuTypeList;
 	public String[] eigyoList;
 	public String[] conditionCodeList;
+	public String themeGroup;
 }
