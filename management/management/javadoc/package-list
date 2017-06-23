@@ -1,0 +1,12 @@
+management.action
+management.constant
+management.dao
+management.dto
+management.entity
+management.form
+management.interceptor
+management.logic
+management.parameter
+management.util
+tutorial.action
+tutorial.form

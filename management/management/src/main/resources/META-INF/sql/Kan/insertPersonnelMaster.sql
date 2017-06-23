@@ -1,0 +1,2 @@
+insert into personnel_master (personnelNumber, personnelName, userId, userPass, authorizations)
+values (/*personnelNumber*/'sse666666', /*personnelName*/'にせてすお', /*userId*/'sse666666', /*userPass*/'sse666666', /*authorizations*/'0')

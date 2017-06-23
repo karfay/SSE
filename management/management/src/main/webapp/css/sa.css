@@ -1,0 +1,463 @@
+body{  
+    margin: 0;  
+    padding: 50px 0 50px 0;  
+}  
+* html body{  
+    overflow: hidden;  
+}   
+div#headerArea {  
+    position: fixed !important;  
+    position: absolute;  
+    top: 0;  
+    left: 0;  
+    width: 100%;  
+    height: 50px;  
+    background-color: #4E9ABE;  
+    color: #fff;
+}
+
+p.header {
+	height: 50px;
+	line-height: 50px;
+}	
+
+div#footerArea {  
+    position: fixed !important;  
+    position: absolute;  
+    bottom: 0;  
+    left: 0;  
+    width: 100%;  
+    height: 50px;  
+    background-color: #4E9ABE;  
+    color: #fff;  
+}  
+* html div#contentsArea{  
+    height: 100%;  
+    overflow: auto;  
+}  
+
+.err {
+	width: 100%;
+	background-color: pink;
+}
+
+body {
+	background-color: #EEEEEE;
+}
+
+h1 {
+	height: 33px;
+}
+
+ul li {
+	list-style: square;
+}
+
+a:hover {
+	background-color: white;
+}
+
+input {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 150px;
+}
+
+input.text {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	
+}
+
+.zenkaku {
+	width: 100%;
+	ime-mode: active;
+}
+
+.hankaku {
+	width: 100%;
+	ime-mode: disabled;
+}
+
+input.long {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 250px;
+}
+
+input.block{
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 150px;
+	display: block;
+}	
+
+
+input.checkbox {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 30px;
+}
+
+input.radio {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 30px;
+}
+
+input.smallButton {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 75px;
+	color: red;
+}
+
+password {
+	font-weight: bold;
+	hight: 20px;
+	font-size: 15px;
+	width: 150px;
+}
+
+input.button {
+	color: red;
+}
+
+select {
+	font-weight: bold;
+	width: 100%;
+	font-size: 15px;
+}
+
+select.page {
+	font-weight: bold;
+	width: 75px;
+	font-size: 15px;
+}
+
+.layout .header {
+	background-color: orange;
+}
+
+.layout .content {
+	background-color: white;
+	text-align: center;
+}
+
+.layout .footer {
+	background-color: black;
+	color: white;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	background-color: #ffffff;
+	empty-cells: show;
+	border: none;
+}
+
+tr {
+	border: none;
+}
+
+th {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	border-left: 1px solid;
+	border-top: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 150;
+}
+
+th.date {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 100px;
+}
+
+th.name {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 100px;
+}
+	
+th.small {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 75;
+}
+
+th.cond {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: red;
+	background-color: yellow;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 15px;
+}
+
+th.process {
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+	border-left: 1px solid black;
+	border-top: 1px solid black;
+	color: white;
+	background-color: blue;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+}
+
+th.long {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 200;
+}
+
+td {
+	font-weight: bold;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	border-left: 1px solid #000000;
+	border-top: 1px solid #000000;
+	text-align: center;
+	font-size: 15px;
+	min-width: 100px;
+	height: 25px;
+}
+
+td.long {
+	border: 1px solid #000000;
+	solid: #000000;
+	text-align: left;
+	padding: 10px;
+	font-size: 12px;
+	width: 200px;
+}
+
+td.red {
+	font-weight: bold;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	text-align: center;
+	font-size: 15px;
+	min-width: 100px;
+	color: red;
+}
+
+td.details {
+	font-weight: bold;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	text-align: center;
+	font-size: 15px;
+	width: 150px;
+}
+
+td.none {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	align: center;
+	border-right: 1px solid #EEEEEE;
+	border-bottom: 1px solid #000000;
+	border-left: 1px solid #EEEEEE;
+	border-top: 1px solid #EEEEEE;
+}
+
+td.noneBox {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	align: center;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	border-left: 1px solid #000000;
+	border-top: 1px solid #000000;
+}
+
+td.space {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	width: 150px;
+}
+
+td.smallSpace {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	width: 50px;
+	text-align: right;
+	vertical-align: top;	
+}
+
+td.message {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	text-align: left;
+	vertical-align: top;	
+}
+
+td.noneLeft {
+	border: none;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	text-align: left;
+}
+
+td.button {
+	border: none;
+	background-color: #EEEEEE;
+	text-align: center;
+	width: 100px;
+}
+
+table.t {
+	border: 1px;
+	border-collapse: collapse;
+	table-layout: fixd;
+	font-size: 12px;
+	empty-cells: show;
+}
+
+th.details {
+	width: 150px;
+	border-collapse: collapse;
+	font-size: 12px;
+	vertical-align: middle;
+	background-color: #00bfff;
+	color: #000000;
+	solid: #000000;
+}
+
+td.t {
+	width: 150px;
+	solid: #000000;
+	font-size: 12px;
+}
+
+td.date {
+	width: 100px;
+	solid: #000000;
+	font-size: 12px;
+}
+
+td.name {
+	width: 100px;
+	solid: #000000;
+	font-size: 12px;
+}
+
+td.small {
+	width: 50px;
+	solid: #000000;
+	font-size: 12px;
+	text-align: center;
+}
+
+td.free {
+	solid: #000000;
+	font-size: 12px;
+}
+
+th.free {
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	color: #330000;
+	background-color: #00bfff;
+	background-position: left top;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+}
+
+td.pc{
+	font-weight: bold;
+	border-collapse: separate;
+	border: yellow;
+	text-align: center;
+	font-size: 12px;
+	width: 50px;
+}
+
+td.wifi {
+	font-weight: bold;
+	border-collapse: separate;
+	border: yellow;
+	text-align: center;
+	font-size: 12px;
+	width: 50px;
+}
+
+td.thincl {
+	font-weight: bold;
+	border-collapse: separate;
+	border: 1px double yellow;
+	text-align: center;
+	font-size: 12px;
+	width: 50px;
+}
+
+td.doc {
+	font-weight: bold;
+	border: 2px double black;
+	background-color: lightsteelblue;
+	text-align: center;
+	font-size: 15px;
+	width: 50px;
+}
+
+td.other {
+	font-weight: bold;
+	border: 2px double black;
+	background-color: wheat;
+	text-align: center;
+	font-size: 15px;
+	width: 50px;
+}
+
+label, input[type='checkbox'] {
+    cursor: pointer;
+}

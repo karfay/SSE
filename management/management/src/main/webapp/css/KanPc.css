@@ -1,0 +1,339 @@
+body{
+	margin: 0;  
+    padding: 50px 0 50px 0;  
+}
+
+body.input{  
+    margin: 0;  
+    padding: 300px 0 50px 0;  
+}  
+* html body{  
+    overflow: hidden;  
+}
+
+div#headerArea {  
+    position: fixed !important;  
+    position: absolute;  
+    top: 0;  
+    left: 0;  
+    width: 100%;  
+    height: 50px;  
+    background-color: seagreen;
+    color: white;
+}
+
+div#selectArea {  
+    position: fixed !important;  
+    position: absolute;  
+    top: 50px;  
+    left: 0;  
+    width: 100%;  
+    height: 250px;  
+    background-color: lightsteelblue;
+    color: white;
+}
+
+
+p.header {
+	height: 50px;
+	line-height: 50px;
+}	
+
+div#footerArea {  
+    position: fixed !important;  
+    position: absolute;  
+    bottom: 0;  
+    left: 0;  
+    width: 100%;  
+    height: 50px;  
+    background-color: #4E9ABE;  
+    color: #fff;  
+}  
+* html div#contentsArea{  
+    height: 100%;  
+    overflow: auto;  
+}  
+
+
+body {
+	background-color: #EEEEEE;
+}
+
+p.messages {
+	padding-left: 20px;
+	font-size: large;
+	font-weight: bold;
+	color: red;
+	text-shadow: -1px -1px white,
+				1px -1px white,
+				-1px 1px white,
+				1px 1px white;
+	background-color: white;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	background-color: #FFFFFF;
+	empty-cells: show;
+	border: none;
+	table-layout: fixed;
+	margin-left: 10px;
+}
+
+.kanPcTable {
+	width: 2000px;
+	table-layout: fixed;
+	margin-right: 10px;
+}
+
+.err {
+	width: 100%;
+	background-color: pink;
+}
+
+.hankaku {
+	width: 100%;
+	ime-mode: disabled;
+}
+
+.zenkaku {
+	width: 100%;
+	ime-mode: active;
+}
+
+p.post{
+	font-size: 15px;
+	font-weight: bold;
+	position: relative; left: 10px;
+}	
+	
+input {
+	font-weight: bold;
+	font-size: 15px;
+	width: 150px;
+}
+
+input[type="text"] {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+}
+
+select {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+}
+
+select.post{
+	width: 150px;
+}
+
+input.Button {
+	color: red;
+}
+
+input.soloButton{
+	color: red;
+	position: relative; left: 10px;
+}
+
+input.clearButton{
+	position: relative; left: 10px;
+}
+
+input.post{
+	position: relative; left: 10px;	
+}
+
+input.outputCsv {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	height: 100%;
+	color: black;
+	background-color: green;
+	color: white;
+}
+
+input.update {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	height: 100%;
+	color: black;
+	padding: 0;
+}
+
+input.quote {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	color: black;
+}
+
+input.delete {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	color: red;
+}
+	
+input.smallButton {
+	font-weight: bold;
+	font-size: 15px;
+	width: 100%;
+	height: 100%;
+	color: red;
+}
+
+th {
+	border: 1px solid #000000;
+	color: #330000;
+	background-color: #00bfff;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 150px;
+}
+
+th.small {
+	border: 1px solid #000000;
+	color: #330000;
+	background-color: #00bfff;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 75px;
+}
+
+th.verrySmall {
+	border: 1px solid #000000;
+	color: #330000;
+	background-color: #00bfff;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 50px;
+}
+
+th.ultraSmall {
+	border: 1px solid #000000;
+	color: #330000;
+	background-color: #00bfff;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 25px;
+}
+
+th.smallSpace {
+	border: 1px solid #EEEEEE;
+	background-color: #EEEEEE;
+	font-size: 15px;
+	width: 75px;
+}
+
+th.update {
+	border: 1px solid #000000;
+	color: #330000;
+	background-color: khaki;
+	padding: 0.3em 1em;
+	text-align: center;
+	font-size: 12px;
+	width: 150px;
+	height: 100%;
+}
+
+td {
+	font-weight: bold;
+	border: 1px solid #000000;
+	text-align: center;
+	font-size: 15px;
+}
+
+td.t{
+	height: 30px;
+}
+
+td.button {
+	border: 1px solid #EEEEEE;
+	background-color: #EEEEEE;
+	width: 50px;
+	height: 100%;
+}
+
+td.smallButton {
+	border: 1px solid #EEEEEE;
+	background-color: #EEEEEE;
+	width: 75px;
+	height: 100%;
+}
+
+td.update {
+	border: 1px solid black;
+	background-color: #EEEEEE;
+	width: 50px;
+	height: 100%;
+	padding: 0 1px;
+}
+
+td.none {
+	border: 1px solid #EEEEEE;
+	background-color: #EEEEEE;
+	font-size: 15px;
+}
+
+td.long {
+	font-weight: bold;
+	border: 1px solid #000000;
+	text-align: left;
+	font-size: 15px;
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+td.select {
+	font-weight: bold;
+	border: 1px solid #000000;
+	text-align: center;
+	font-size: 15px;
+	width: 100%;
+}
+
+td.outputCsv{
+	border: 1px solid black;
+	background-color: #EEEEEE;
+	width : 150px;
+	height : 35px;
+	padding: 0 0 0 0;
+}
+
+th.post{
+	font-size: 15px;
+	background-color: orange;
+	text-align: left;
+	padding-left: 5px;
+}
+
+td.notes {
+	font-weight: bold;
+	border: 1px solid #000000;
+	text-align: left;
+	font-size: 15px;
+	width: 150px;
+	height: 1.1em;
+	padding-left: 1em;
+}
+
+div#notes{
+	overflow: hidden;		
+	width: 100%;
+	height: 1.1em;
+	
+}

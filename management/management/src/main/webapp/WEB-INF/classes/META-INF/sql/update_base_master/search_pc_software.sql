@@ -1,0 +1,1 @@
+select * from pc_software where itLabel = /*itLabel*/'1' and softwareId = /*softwareId*/'1'

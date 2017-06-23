@@ -1,0 +1,1 @@
+delete from PERSONNEL_MASTER where PERSONNELNUMBER = /*$1*/

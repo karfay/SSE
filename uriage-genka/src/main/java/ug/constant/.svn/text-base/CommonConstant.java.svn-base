@@ -1,0 +1,17 @@
+package ug.constant;
+
+public class CommonConstant {
+	public static final String insert = "新規作成しました。";
+
+	public static final String update = "更新しました。";
+
+	public static final String delete = "削除しました。";
+
+	public static final String updateList = "更新しました。更新したテーブルは水色枠で表示されます。";
+
+	public static final String insertList = "新規作成しました。作成したテーブルは赤枠で表示されます。";
+
+	public static final String noThemeNoErr = "テーマNOがテーマ一覧表に登録されていません。<br />テーマNOを確認して下さい。";
+
+
+}

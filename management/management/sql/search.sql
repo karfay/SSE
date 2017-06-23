@@ -1,0 +1,1 @@
+select ITラベル from 基本マスタ where /*searchForm*/'105'; 
